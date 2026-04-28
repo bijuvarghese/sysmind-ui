@@ -338,15 +338,30 @@ function renderMarkdown(content: string) {
   return <Stack spacing={2}>{blocks}</Stack>;
 }
 
+type LLMModel = { id: string };
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState<LLMModel[] | null>(null);
+  const [modelsChecked, setModelsChecked] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    fetch("/api/models")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        const list = Array.isArray(data?.data) ? (data.data as LLMModel[]) : [];
+        setModels(list);
+      })
+      .catch(() => setModels(null))
+      .finally(() => setModelsChecked(true));
+  }, []);
 
   const sendMessage = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -454,9 +469,19 @@ export default function Home() {
                 Material UI chat interface for the SysMind agent.
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Chip label="Connected" color="secondary" variant="outlined" />
-              <Chip label="MUI" variant="filled" color="primary" />
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+              {modelsChecked && models && models.length > 0 ? (
+                <>
+                  <Chip label="Connected" color="secondary" variant="outlined" size="small" />
+                  {models.map((m) => (
+                    <Chip key={m.id} label={m.id} variant="filled" color="primary" size="small"
+                      sx={{ maxWidth: 220, fontSize: "0.7rem" }} />
+                  ))}
+                </>
+              ) : modelsChecked ? (
+                <Chip label="Disconnected" variant="outlined" size="small"
+                  sx={{ borderColor: "rgba(148,163,184,0.3)", color: "text.disabled" }} />
+              ) : null}
             </Box>
           </Box>
         </Paper>
