@@ -1,6 +1,19 @@
 "use client";
 
-import { FormEvent, Fragment, ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Divider,
+  LinearProgress,
+  Link as MuiLink,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 type Message = {
   role: "user" | "assistant";
@@ -32,35 +45,55 @@ function renderInline(text: string): ReactNode[] {
   return parts.filter(Boolean).map((part, index) => {
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
-        <code
+        <Box
           key={index}
-          className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[0.9em] text-amber-200"
+          component="code"
+          sx={{
+            px: 0.75,
+            py: 0.25,
+            borderRadius: 1,
+            bgcolor: "rgba(124, 58, 237, 0.16)",
+            color: "primary.light",
+            fontFamily: "monospace",
+            fontSize: "0.92em",
+          }}
         >
           {part.slice(1, -1)}
-        </code>
+        </Box>
       );
     }
 
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={index} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+      return (
+        <Box key={index} component="strong" sx={{ fontWeight: 700, color: "text.primary" }}>
+          {part.slice(2, -2)}
+        </Box>
+      );
     }
 
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={index} className="italic">{part.slice(1, -1)}</em>;
+      return (
+        <Box key={index} component="em" sx={{ fontStyle: "italic" }}>
+          {part.slice(1, -1)}
+        </Box>
+      );
     }
 
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
       return (
-        <a
+        <MuiLink
           key={index}
           href={linkMatch[2]}
           target="_blank"
           rel="noreferrer"
-          className="text-sky-300 underline decoration-sky-500/60 underline-offset-2 transition hover:text-sky-200"
+          sx={{
+            color: "secondary.light",
+            textDecorationColor: "rgba(34, 197, 94, 0.55)",
+          }}
         >
           {linkMatch[1]}
-        </a>
+        </MuiLink>
       );
     }
 
@@ -70,9 +103,9 @@ function renderInline(text: string): ReactNode[] {
 
 function renderParagraph(text: string, key: string) {
   return (
-    <p key={key} className="leading-7 text-slate-100">
+    <Typography key={key} variant="body2" sx={{ lineHeight: 1.8, color: "text.primary" }}>
       {renderInline(text)}
-    </p>
+    </Typography>
   );
 }
 
@@ -105,16 +138,31 @@ function renderMarkdown(content: string) {
       }
 
       blocks.push(
-        <div key={`code-${blocks.length}`} className="overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+        <Paper
+          key={`code-${blocks.length}`}
+          variant="outlined"
+          sx={{
+            overflow: "hidden",
+            borderColor: "rgba(148, 163, 184, 0.2)",
+            bgcolor: "rgba(2, 6, 23, 0.85)",
+          }}
+        >
           {language ? (
-            <div className="border-b border-slate-800 px-3 py-2 text-xs uppercase tracking-[0.16em] text-slate-400">
-              {language}
-            </div>
+            <Box sx={{ px: 2, py: 1, borderBottom: "1px solid", borderColor: "divider" }}>
+              <Typography variant="caption" sx={{ letterSpacing: 1.2, color: "text.secondary" }}>
+                {language}
+              </Typography>
+            </Box>
           ) : null}
-          <pre className="overflow-x-auto px-4 py-3 text-xs leading-6 text-slate-200">
-            <code>{codeLines.join("\n")}</code>
-          </pre>
-        </div>,
+          <Box component="pre" sx={{ m: 0, px: 2, py: 1.75, overflowX: "auto" }}>
+            <Box
+              component="code"
+              sx={{ display: "block", fontSize: "0.8rem", lineHeight: 1.7, color: "text.primary" }}
+            >
+              {codeLines.join("\n")}
+            </Box>
+          </Box>
+        </Paper>,
       );
       continue;
     }
@@ -123,23 +171,23 @@ function renderMarkdown(content: string) {
     if (headingMatch) {
       const level = headingMatch[1].length;
       const heading = headingMatch[2].trim();
-      const className = level === 1
-        ? "text-xl font-semibold text-white"
-        : level === 2
-          ? "text-lg font-semibold text-white"
-          : "text-base font-semibold text-slate-100";
+      const variant = level === 1 ? "h6" : level === 2 ? "subtitle1" : "body1";
 
       blocks.push(
-        <div key={`heading-${blocks.length}`} className={className}>
+        <Typography
+          key={`heading-${blocks.length}`}
+          variant={variant}
+          sx={{ fontWeight: 700, color: "text.primary" }}
+        >
           {renderInline(heading)}
-        </div>,
+        </Typography>,
       );
       index += 1;
       continue;
     }
 
     if (/^[-*_]{3,}$/.test(trimmed.replace(/\s+/g, ""))) {
-      blocks.push(<hr key={`hr-${blocks.length}`} className="border-slate-800" />);
+      blocks.push(<Divider key={`hr-${blocks.length}`} sx={{ borderColor: "divider" }} />);
       index += 1;
       continue;
     }
@@ -155,30 +203,57 @@ function renderMarkdown(content: string) {
       }
 
       blocks.push(
-        <div key={`table-${blocks.length}`} className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-900/80 text-slate-200">
-              <tr>
+        <Paper
+          key={`table-${blocks.length}`}
+          variant="outlined"
+          sx={{ overflowX: "auto", borderColor: "rgba(148, 163, 184, 0.2)" }}
+        >
+          <Box component="table" sx={{ minWidth: "100%", borderCollapse: "collapse" }}>
+            <Box component="thead" sx={{ bgcolor: "rgba(15, 23, 42, 0.8)" }}>
+              <Box component="tr">
                 {header.map((cell, cellIndex) => (
-                  <th key={cellIndex} className="border-b border-slate-800 px-3 py-2 font-medium">
+                  <Box
+                    key={cellIndex}
+                    component="th"
+                    sx={{
+                      px: 1.5,
+                      py: 1,
+                      textAlign: "left",
+                      borderBottom: "1px solid",
+                      borderColor: "divider",
+                      fontWeight: 600,
+                      color: "text.primary",
+                    }}
+                  >
                     {renderInline(cell)}
-                  </th>
+                  </Box>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="bg-slate-950/40 text-slate-300">
+              </Box>
+            </Box>
+            <Box component="tbody">
               {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-t border-slate-800">
+                <Box key={rowIndex} component="tr">
                   {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} className="px-3 py-2 align-top">
+                    <Box
+                      key={cellIndex}
+                      component="td"
+                      sx={{
+                        px: 1.5,
+                        py: 1,
+                        verticalAlign: "top",
+                        borderTop: "1px solid",
+                        borderColor: "divider",
+                        color: "text.secondary",
+                      }}
+                    >
                       {renderInline(cell)}
-                    </td>
+                    </Box>
                   ))}
-                </tr>
+                </Box>
               ))}
-            </tbody>
-          </table>
-        </div>,
+            </Box>
+          </Box>
+        </Paper>,
       );
       continue;
     }
@@ -211,16 +286,25 @@ function renderMarkdown(content: string) {
 
       const ordered = items[0]?.ordered ?? false;
       const ListTag = ordered ? "ol" : "ul";
-      const listClassName = ordered
-        ? "ml-5 list-decimal space-y-2 text-slate-100 marker:text-slate-500"
-        : "ml-5 list-disc space-y-2 text-slate-100 marker:text-slate-500";
 
       blocks.push(
-        <ListTag key={`list-${blocks.length}`} className={listClassName}>
+        <Box
+          key={`list-${blocks.length}`}
+          component={ListTag}
+          sx={{
+            ml: 3,
+            my: 0,
+            display: "grid",
+            gap: 1,
+            color: "text.primary",
+          }}
+        >
           {items.map((item, itemIndex) => (
-            <li key={itemIndex}>{renderInline(item.content)}</li>
+            <Box key={itemIndex} component="li" sx={{ lineHeight: 1.7 }}>
+              {renderInline(item.content)}
+            </Box>
           ))}
-        </ListTag>,
+        </Box>,
       );
       continue;
     }
@@ -251,7 +335,7 @@ function renderMarkdown(content: string) {
     blocks.push(renderParagraph(paragraphLines.join(" "), `paragraph-${blocks.length}`));
   }
 
-  return <div className="space-y-4">{blocks}</div>;
+  return <Stack spacing={2}>{blocks}</Stack>;
 }
 
 export default function Home() {
@@ -292,10 +376,8 @@ export default function Home() {
             return `Request failed with status ${res.status}.`;
           }
 
-          const error =
-            "error" in data && typeof data.error === "string" ? data.error : null;
-          const preview =
-            "preview" in data && typeof data.preview === "string" ? data.preview : null;
+          const error = "error" in data && typeof data.error === "string" ? data.error : null;
+          const preview = "preview" in data && typeof data.preview === "string" ? data.preview : null;
 
           if (error && preview) {
             return `${error}\n\n${preview}`;
@@ -335,89 +417,213 @@ export default function Home() {
   const hasMessages = messages.length > 0;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 shadow-lg shadow-black/20 backdrop-blur">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-              SysMind MCP
-            </h1>
-            <p className="text-sm text-slate-400">
-              Chat with the agent from a Tailwind-built interface.
-            </p>
-          </div>
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-            Connected
-          </span>
-        </header>
-
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl shadow-black/25">
-          <div className="border-b border-slate-800 px-4 py-3 text-sm text-slate-400">
-            {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
-          </div>
-
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
-            {!hasMessages && (
-              <div className="flex h-full items-center justify-center">
-                <div className="max-w-sm rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-10 text-center text-sm text-slate-400">
-                  Ask about system health, agent state, or anything you want to
-                  check. Messages will appear here.
-                </div>
-              </div>
-            )}
-
-            {messages.map((msg, i) => (
-              <div
-                key={`${msg.role}-${i}`}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[75%] ${msg.role === "user"
-                    ? "bg-indigo-500 text-white"
-                    : "border border-slate-700 bg-slate-950/70 text-slate-100"
-                    }`}
-                >
-                  {msg.role === "assistant" ? renderMarkdown(msg.content) : (
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-slate-400" />
-                  Thinking...
-                </div>
-              </div>
-            )}
-            <div ref={endRef} />
-          </div>
-
-          <form
-            onSubmit={sendMessage}
-            className="border-t border-slate-800 bg-slate-950/70 p-4 backdrop-blur"
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100vh",
+        px: { xs: 2, sm: 3, md: 4 },
+        py: { xs: 2, sm: 3 },
+      }}
+    >
+      <Box sx={{ mx: "auto", display: "flex", minHeight: "calc(100vh - 32px)", maxWidth: 1220, flexDirection: "column", gap: 2.5 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2, sm: 2.5 },
+            border: "1px solid",
+            borderColor: "rgba(148, 163, 184, 0.18)",
+            background:
+              "linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(15, 23, 42, 0.7) 100%)",
+            backdropFilter: "blur(20px)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              alignItems: { xs: "flex-start", sm: "center" },
+              justifyContent: "space-between",
+            }}
           >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            <Box>
+              <Typography variant="h4" component="h1">
+                SysMind MCP
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.75, color: "text.secondary" }}>
+                Material UI chat interface for the SysMind agent.
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Chip label="Connected" color="secondary" variant="outlined" />
+              <Chip label="MUI" variant="filled" color="primary" />
+            </Box>
+          </Box>
+        </Paper>
+
+        <Paper
+          elevation={0}
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+            border: "1px solid",
+            borderColor: "rgba(148, 163, 184, 0.18)",
+            backgroundColor: "rgba(8, 15, 30, 0.82)",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {loading ? <LinearProgress color="secondary" /> : null}
+
+          <Box
+            sx={{
+              px: { xs: 2, sm: 2.5 },
+              py: 1.5,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
+            </Typography>
+          </Box>
+
+          <Box sx={{ flex: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 2.5 }}>
+            <Stack spacing={2.25} sx={{ minHeight: "100%" }}>
+              {!hasMessages ? (
+                <Box sx={{ flex: 1, display: "grid", placeItems: "center" }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      maxWidth: 520,
+                      p: 3,
+                      textAlign: "center",
+                      borderStyle: "dashed",
+                      borderColor: "rgba(148, 163, 184, 0.25)",
+                      bgcolor: "rgba(15, 23, 42, 0.45)",
+                    }}
+                  >
+                    <Typography variant="h6" component="p" sx={{ mb: 1 }}>
+                      Start a conversation
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                      Ask about system health, agent state, or anything you want to check. Messages will
+                      appear here.
+                    </Typography>
+                  </Paper>
+                </Box>
+              ) : null}
+
+              {messages.map((msg, i) => (
+                <Box
+                  key={`${msg.role}-${i}`}
+                  sx={{
+                    display: "flex",
+                    justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                  }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      maxWidth: { xs: "92%", sm: "78%" },
+                      px: 2,
+                      py: 1.75,
+                      border: "1px solid",
+                      borderColor:
+                        msg.role === "user" ? "rgba(124, 58, 237, 0.35)" : "rgba(148, 163, 184, 0.18)",
+                      bgcolor:
+                        msg.role === "user" ? "rgba(124, 58, 237, 0.22)" : "rgba(15, 23, 42, 0.85)",
+                    }}
+                  >
+                    {msg.role === "assistant" ? (
+                      renderMarkdown(msg.content)
+                    ) : (
+                      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+                        {msg.content}
+                      </Typography>
+                    )}
+                  </Paper>
+                </Box>
+              ))}
+
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 1,
+                      px: 2,
+                      py: 1.5,
+                      border: "1px solid",
+                      borderColor: "rgba(148, 163, 184, 0.18)",
+                      bgcolor: "rgba(15, 23, 42, 0.85)",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        bgcolor: "text.secondary",
+                        animation: "pulse 1s ease-in-out infinite",
+                        "@keyframes pulse": {
+                          "0%, 100%": { opacity: 0.35, transform: "scale(0.9)" },
+                          "50%": { opacity: 1, transform: "scale(1.15)" },
+                        },
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                      Thinking...
+                    </Typography>
+                  </Paper>
+                </Box>
+              ) : null}
+              <Box ref={endRef} />
+            </Stack>
+          </Box>
+
+          <Box
+            component="form"
+            onSubmit={sendMessage}
+            sx={{
+              p: { xs: 2, sm: 2.5 },
+              borderTop: "1px solid",
+              borderColor: "divider",
+              bgcolor: "rgba(2, 6, 23, 0.48)",
+            }}
+          >
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+              <TextField
+                fullWidth
+                multiline
+                minRows={1}
+                maxRows={5}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about system health..."
                 aria-label="Message input"
+                disabled={loading}
               />
-              <button
+              <Button
                 type="submit"
+                variant="contained"
+                color="primary"
                 disabled={loading || !input.trim()}
-                className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                sx={{ minWidth: { xs: "100%", sm: 132 }, py: 1.5 }}
               >
                 Send
-              </button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+              </Button>
+            </Stack>
+            <Alert severity="info" sx={{ mt: 1.5, bgcolor: "rgba(2, 132, 199, 0.12)" }}>
+              Responses are rendered with light Markdown support, including headings, lists, tables, links,
+              and code blocks.
+            </Alert>
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
   );
 }
