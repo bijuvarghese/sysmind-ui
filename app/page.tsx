@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, ReactNode, useEffect, useRef, useState, SubmitEvent } from "react";
 import {
   Alert,
   Box,
@@ -348,7 +348,7 @@ export default function Home() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
+  const sendMessage = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const prompt = input.trim();
