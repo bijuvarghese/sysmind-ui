@@ -136,7 +136,9 @@ function parseUpstreamBody(body: string): unknown {
 export async function POST(req: Request) {
   const body = await req.json();
 
-  const response = await fetch("http://localhost:8080/agent", {
+  const mcpBaseUrl = process.env.MCP_BACKEND_URL ?? "http://localhost:8080";
+
+  const response = await fetch(`${mcpBaseUrl}/agent`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

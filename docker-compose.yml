@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sysmind-ui
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
