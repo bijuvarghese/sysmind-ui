@@ -13,6 +13,8 @@ import {
   Stack,
   TextField,
   Typography,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 type Message = {
@@ -346,6 +348,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<LLMModel[] | null>(null);
   const [modelsChecked, setModelsChecked] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -358,6 +361,9 @@ export default function Home() {
       .then((data) => {
         const list = Array.isArray(data?.data) ? (data.data as LLMModel[]) : [];
         setModels(list);
+        if (list.length > 0 && !selectedModel) {
+          setSelectedModel(list[0].id);
+        }
       })
       .catch(() => setModels(null))
       .finally(() => setModelsChecked(true));
@@ -380,7 +386,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, model: selectedModel }),
       });
 
       const data = await res.json();
@@ -472,11 +478,25 @@ export default function Home() {
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
               {modelsChecked && models && models.length > 0 ? (
                 <>
-                  <Chip label="Connected" color="secondary" variant="outlined" size="small" />
-                  {models.map((m) => (
-                    <Chip key={m.id} label={m.id} variant="filled" color="primary" size="small"
-                      sx={{ maxWidth: 220, fontSize: "0.7rem" }} />
-                  ))}
+                  <Chip label="Connected" color="secondary" variant="outlined" size="small" sx={{ mr: 1 }} />
+                  <Select
+                    size="small"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value as string)}
+                    sx={{
+                      minWidth: 200,
+                      height: 32,
+                      fontSize: "0.875rem",
+                      bgcolor: "rgba(15, 23, 42, 0.4)",
+                      "& .MuiSelect-select": { py: 0.5 }
+                    }}
+                  >
+                    {models.map((m) => (
+                      <MenuItem key={m.id} value={m.id} sx={{ fontSize: "0.875rem" }}>
+                        {m.id}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </>
               ) : modelsChecked ? (
                 <Chip label="Disconnected" variant="outlined" size="small"
