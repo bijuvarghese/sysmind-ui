@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, ReactNode, useEffect, useRef, useState, SubmitEvent } from "react";
+import { useEffect, useRef, useState, SubmitEvent } from "react";
 import {
   Alert,
   Box,
@@ -16,329 +16,16 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
 };
-
-type ListItem = {
-  content: string;
-  ordered: boolean;
-};
-
-const tableDividerPattern = /^\s*\|?(\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$/;
-const orderedListPattern = /^\s*\d+\.\s+/;
-const unorderedListPattern = /^\s*[-*+]\s+/;
-const headingPattern = /^(#{1,6})\s+(.*)$/;
-
-function parseTableRow(line: string) {
-  return line
-    .trim()
-    .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map((cell) => cell.trim());
-}
-
-function renderInline(text: string): ReactNode[] {
-  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g);
-
-  return parts.filter(Boolean).map((part, index) => {
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <Box
-          key={index}
-          component="code"
-          sx={{
-            px: 0.75,
-            py: 0.25,
-            borderRadius: 1,
-            bgcolor: "rgba(124, 58, 237, 0.16)",
-            color: "primary.light",
-            fontFamily: "monospace",
-            fontSize: "0.92em",
-          }}
-        >
-          {part.slice(1, -1)}
-        </Box>
-      );
-    }
-
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return (
-        <Box key={index} component="strong" sx={{ fontWeight: 700, color: "text.primary" }}>
-          {part.slice(2, -2)}
-        </Box>
-      );
-    }
-
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return (
-        <Box key={index} component="em" sx={{ fontStyle: "italic" }}>
-          {part.slice(1, -1)}
-        </Box>
-      );
-    }
-
-    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (linkMatch) {
-      return (
-        <MuiLink
-          key={index}
-          href={linkMatch[2]}
-          target="_blank"
-          rel="noreferrer"
-          sx={{
-            color: "secondary.light",
-            textDecorationColor: "rgba(34, 197, 94, 0.55)",
-          }}
-        >
-          {linkMatch[1]}
-        </MuiLink>
-      );
-    }
-
-    return <Fragment key={index}>{part}</Fragment>;
-  });
-}
-
-function renderParagraph(text: string, key: string) {
-  return (
-    <Typography key={key} variant="body2" sx={{ lineHeight: 1.8, color: "text.primary" }}>
-      {renderInline(text)}
-    </Typography>
-  );
-}
-
-function renderMarkdown(content: string) {
-  const lines = content.replace(/\r\n/g, "\n").split("\n");
-  const blocks: ReactNode[] = [];
-  let index = 0;
-
-  while (index < lines.length) {
-    const line = lines[index];
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("```")) {
-      const language = trimmed.slice(3).trim();
-      const codeLines: string[] = [];
-      index += 1;
-
-      while (index < lines.length && !lines[index].trim().startsWith("```")) {
-        codeLines.push(lines[index]);
-        index += 1;
-      }
-
-      if (index < lines.length) {
-        index += 1;
-      }
-
-      blocks.push(
-        <Paper
-          key={`code-${blocks.length}`}
-          variant="outlined"
-          sx={{
-            overflow: "hidden",
-            borderColor: "rgba(148, 163, 184, 0.2)",
-            bgcolor: "rgba(2, 6, 23, 0.85)",
-          }}
-        >
-          {language ? (
-            <Box sx={{ px: 2, py: 1, borderBottom: "1px solid", borderColor: "divider" }}>
-              <Typography variant="caption" sx={{ letterSpacing: 1.2, color: "text.secondary" }}>
-                {language}
-              </Typography>
-            </Box>
-          ) : null}
-          <Box component="pre" sx={{ m: 0, px: 2, py: 1.75, overflowX: "auto" }}>
-            <Box
-              component="code"
-              sx={{ display: "block", fontSize: "0.8rem", lineHeight: 1.7, color: "text.primary" }}
-            >
-              {codeLines.join("\n")}
-            </Box>
-          </Box>
-        </Paper>,
-      );
-      continue;
-    }
-
-    const headingMatch = line.match(headingPattern);
-    if (headingMatch) {
-      const level = headingMatch[1].length;
-      const heading = headingMatch[2].trim();
-      const variant = level === 1 ? "h6" : level === 2 ? "subtitle1" : "body1";
-
-      blocks.push(
-        <Typography
-          key={`heading-${blocks.length}`}
-          variant={variant}
-          sx={{ fontWeight: 700, color: "text.primary" }}
-        >
-          {renderInline(heading)}
-        </Typography>,
-      );
-      index += 1;
-      continue;
-    }
-
-    if (/^[-*_]{3,}$/.test(trimmed.replace(/\s+/g, ""))) {
-      blocks.push(<Divider key={`hr-${blocks.length}`} sx={{ borderColor: "divider" }} />);
-      index += 1;
-      continue;
-    }
-
-    if (index + 1 < lines.length && line.includes("|") && tableDividerPattern.test(lines[index + 1])) {
-      const header = parseTableRow(line);
-      index += 2;
-      const rows: string[][] = [];
-
-      while (index < lines.length && lines[index].includes("|") && lines[index].trim()) {
-        rows.push(parseTableRow(lines[index]));
-        index += 1;
-      }
-
-      blocks.push(
-        <Paper
-          key={`table-${blocks.length}`}
-          variant="outlined"
-          sx={{ overflowX: "auto", borderColor: "rgba(148, 163, 184, 0.2)" }}
-        >
-          <Box component="table" sx={{ minWidth: "100%", borderCollapse: "collapse" }}>
-            <Box component="thead" sx={{ bgcolor: "rgba(15, 23, 42, 0.8)" }}>
-              <Box component="tr">
-                {header.map((cell, cellIndex) => (
-                  <Box
-                    key={cellIndex}
-                    component="th"
-                    sx={{
-                      px: 1.5,
-                      py: 1,
-                      textAlign: "left",
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                      fontWeight: 600,
-                      color: "text.primary",
-                    }}
-                  >
-                    {renderInline(cell)}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-            <Box component="tbody">
-              {rows.map((row, rowIndex) => (
-                <Box key={rowIndex} component="tr">
-                  {row.map((cell, cellIndex) => (
-                    <Box
-                      key={cellIndex}
-                      component="td"
-                      sx={{
-                        px: 1.5,
-                        py: 1,
-                        verticalAlign: "top",
-                        borderTop: "1px solid",
-                        borderColor: "divider",
-                        color: "text.secondary",
-                      }}
-                    >
-                      {renderInline(cell)}
-                    </Box>
-                  ))}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </Paper>,
-      );
-      continue;
-    }
-
-    if (orderedListPattern.test(line) || unorderedListPattern.test(line)) {
-      const items: ListItem[] = [];
-
-      while (index < lines.length) {
-        const currentLine = lines[index];
-        if (orderedListPattern.test(currentLine)) {
-          items.push({
-            ordered: true,
-            content: currentLine.replace(orderedListPattern, "").trim(),
-          });
-          index += 1;
-          continue;
-        }
-
-        if (unorderedListPattern.test(currentLine)) {
-          items.push({
-            ordered: false,
-            content: currentLine.replace(unorderedListPattern, "").trim(),
-          });
-          index += 1;
-          continue;
-        }
-
-        break;
-      }
-
-      const ordered = items[0]?.ordered ?? false;
-      const ListTag = ordered ? "ol" : "ul";
-
-      blocks.push(
-        <Box
-          key={`list-${blocks.length}`}
-          component={ListTag}
-          sx={{
-            ml: 3,
-            my: 0,
-            display: "grid",
-            gap: 1,
-            color: "text.primary",
-          }}
-        >
-          {items.map((item, itemIndex) => (
-            <Box key={itemIndex} component="li" sx={{ lineHeight: 1.7 }}>
-              {renderInline(item.content)}
-            </Box>
-          ))}
-        </Box>,
-      );
-      continue;
-    }
-
-    const paragraphLines = [trimmed];
-    index += 1;
-
-    while (index < lines.length) {
-      const nextLine = lines[index];
-      const nextTrimmed = nextLine.trim();
-
-      if (
-        !nextTrimmed ||
-        nextTrimmed.startsWith("```") ||
-        headingPattern.test(nextLine) ||
-        /^[-*_]{3,}$/.test(nextTrimmed.replace(/\s+/g, "")) ||
-        orderedListPattern.test(nextLine) ||
-        unorderedListPattern.test(nextLine) ||
-        (index + 1 < lines.length && nextLine.includes("|") && tableDividerPattern.test(lines[index + 1]))
-      ) {
-        break;
-      }
-
-      paragraphLines.push(nextTrimmed);
-      index += 1;
-    }
-
-    blocks.push(renderParagraph(paragraphLines.join(" "), `paragraph-${blocks.length}`));
-  }
-
-  return <Stack spacing={2}>{blocks}</Stack>;
-}
 
 type LLMModel = { id: string };
 
@@ -369,8 +56,8 @@ export default function Home() {
       .finally(() => setModelsChecked(true));
   }, []);
 
-  const sendMessage = async (event: SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const sendMessage = async (event?: any) => {
+    if (event) event.preventDefault();
 
     const prompt = input.trim();
     if (!prompt || loading) return;
@@ -579,10 +266,104 @@ export default function Home() {
                         msg.role === "user" ? "rgba(124, 58, 237, 0.35)" : "rgba(148, 163, 184, 0.18)",
                       bgcolor:
                         msg.role === "user" ? "rgba(124, 58, 237, 0.22)" : "rgba(15, 23, 42, 0.85)",
+                      "& .markdown-body": {
+                        color: "text.primary",
+                        fontSize: "0.875rem",
+                        lineHeight: 1.8,
+                        "& > *:first-of-type": { mt: 0 },
+                        "& > *:last-of-type": { mb: 0 },
+                      }
                     }}
                   >
                     {msg.role === "assistant" ? (
-                      renderMarkdown(msg.content)
+                      <Box className="markdown-body">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                          components={{
+                            p: ({ children }) => (
+                              <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.8, color: "text.primary" }}>
+                                {children}
+                              </Typography>
+                            ),
+                            h1: ({ children }) => <Typography variant="h5" sx={{ fontWeight: 700, mt: 3, mb: 1 }}>{children}</Typography>,
+                            h2: ({ children }) => <Typography variant="h6" sx={{ fontWeight: 700, mt: 3, mb: 1 }}>{children}</Typography>,
+                            h3: ({ children }) => <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 2, mb: 1 }}>{children}</Typography>,
+                            code({ node, inline, className, children, ...props }: any) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              return !inline ? (
+                                <Paper
+                                  variant="outlined"
+                                  sx={{
+                                    overflow: "hidden",
+                                    borderColor: "rgba(148, 163, 184, 0.2)",
+                                    bgcolor: "rgba(2, 6, 23, 0.85)",
+                                    mb: 2
+                                  }}
+                                >
+                                  {match ? (
+                                    <Box sx={{ px: 2, py: 1, borderBottom: "1px solid", borderColor: "divider" }}>
+                                      <Typography variant="caption" sx={{ letterSpacing: 1.2, color: "text.secondary" }}>
+                                        {match[1]}
+                                      </Typography>
+                                    </Box>
+                                  ) : null}
+                                  <Box component="pre" sx={{ m: 0, px: 2, py: 1.75, overflowX: "auto" }}>
+                                    <Box component="code" sx={{ display: "block", fontSize: "0.8rem", lineHeight: 1.7, color: "text.primary" }} {...props}>
+                                      {children}
+                                    </Box>
+                                  </Box>
+                                </Paper>
+                              ) : (
+                                <Box
+                                  component="code"
+                                  sx={{
+                                    px: 0.75,
+                                    py: 0.25,
+                                    borderRadius: 1,
+                                    bgcolor: "rgba(124, 58, 237, 0.16)",
+                                    color: "primary.light",
+                                    fontFamily: "monospace",
+                                    fontSize: "0.92em",
+                                  }}
+                                  {...props}
+                                >
+                                  {children}
+                                </Box>
+                              );
+                            },
+                            a: ({ children, href }) => (
+                              <MuiLink href={href} target="_blank" rel="noreferrer" sx={{ color: "secondary.light", textDecorationColor: "rgba(34, 197, 94, 0.55)" }}>
+                                {children}
+                              </MuiLink>
+                            ),
+                            ul: ({ children }) => <Box component="ul" sx={{ ml: 3, my: 2, display: "grid", gap: 1, color: "text.primary" }}>{children}</Box>,
+                            ol: ({ children }) => <Box component="ol" sx={{ ml: 3, my: 2, display: "grid", gap: 1, color: "text.primary" }}>{children}</Box>,
+                            li: ({ children }) => <Box component="li" sx={{ lineHeight: 1.7 }}>{children}</Box>,
+                            table: ({ children }) => (
+                              <Paper variant="outlined" sx={{ overflowX: "auto", borderColor: "rgba(148, 163, 184, 0.2)", mb: 2 }}>
+                                <Box component="table" sx={{ minWidth: "100%", borderCollapse: "collapse" }}>{children}</Box>
+                              </Paper>
+                            ),
+                            thead: ({ children }) => <Box component="thead" sx={{ bgcolor: "rgba(15, 23, 42, 0.8)" }}>{children}</Box>,
+                            tbody: ({ children }) => <Box component="tbody">{children}</Box>,
+                            tr: ({ children }) => <Box component="tr">{children}</Box>,
+                            th: ({ children }) => (
+                              <Box component="th" sx={{ px: 1.5, py: 1, textAlign: "left", borderBottom: "1px solid", borderColor: "divider", fontWeight: 600, color: "text.primary" }}>
+                                {children}
+                              </Box>
+                            ),
+                            td: ({ children }) => (
+                              <Box component="td" sx={{ px: 1.5, py: 1, verticalAlign: "top", borderTop: "1px solid", borderColor: "divider", color: "text.secondary" }}>
+                                {children}
+                              </Box>
+                            ),
+                            hr: () => <Divider sx={{ my: 2, borderColor: "divider" }} />
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </Box>
                     ) : (
                       <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
                         {msg.content}
@@ -648,6 +429,14 @@ export default function Home() {
                 maxRows={5}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!loading && input.trim()) {
+                      sendMessage();
+                    }
+                  }
+                }}
                 placeholder="Ask about system health..."
                 aria-label="Message input"
                 disabled={loading}
@@ -663,8 +452,7 @@ export default function Home() {
               </Button>
             </Stack>
             <Alert severity="info" sx={{ mt: 1.5, bgcolor: "rgba(2, 132, 199, 0.12)" }}>
-              Responses are rendered with light Markdown support, including headings, lists, tables, links,
-              and code blocks.
+              Responses are rendered with full Markdown and LaTeX math support!
             </Alert>
           </Box>
         </Paper>
