@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# sysmind-ui
 
-## Getting Started
+Next.js 16 frontend for SysMind. It provides a Material UI chat interface, model selection, Markdown/LaTeX response rendering, and API routes that proxy to the MCP backend.
 
-First, run the development server:
+## Structure
+
+- `app/page.tsx`: small route entry.
+- `app/components/ChatPage.tsx`: chat state, model loading, and send-message flow.
+- `app/components/ChatHeader.tsx`: title, connection state, and model selector.
+- `app/components/MessageList.tsx`: empty state, message bubbles, and loading indicator.
+- `app/components/MarkdownMessage.tsx`: Markdown, tables, code blocks, and LaTeX rendering.
+- `app/components/MessageComposer.tsx`: prompt input and send action.
+- `app/api/agent/route.ts`: proxies chat requests to `MCP_BACKEND_URL`.
+- `app/api/models/route.ts`: proxies model listing and safely handles non-JSON upstream failures.
+
+## Configuration
+
+The UI API routes read:
+
+```env
+MCP_BACKEND_URL=http://localhost:8080
+```
+
+When running through the root Docker Compose stack, this is injected as:
+
+```env
+MCP_BACKEND_URL=http://sysmind-mcp:8080
+```
+
+## Development
+
+Install dependencies:
+
+```bash
+npm ci
+```
+
+Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. If port `3000` is busy, Next may choose another port such as `3001`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+If you see `Another next dev server is already running`, stop the old process:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pkill -f "next dev"
+```
 
-## Learn More
+## Verification
 
-To learn more about Next.js, take a look at the following resources:
+Run lint:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Build production output:
 
-## Deploy on Vercel
+```bash
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Docker
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The root `docker-compose.yml` builds this service and runs it behind nginx. Use the root scripts:
+
+```bash
+../deploy.sh
+../shutdown.sh
+```

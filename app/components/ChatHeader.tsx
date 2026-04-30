@@ -39,9 +39,6 @@ export default function ChatHeader({
           <Typography variant="h4" component="h1">
             SysMind MCP
           </Typography>
-          <Typography variant="body2" sx={{ mt: 0.75, color: "text.secondary" }}>
-            Material UI chat interface for the SysMind agent.
-          </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           {modelsChecked && models && models.length > 0 ? (
