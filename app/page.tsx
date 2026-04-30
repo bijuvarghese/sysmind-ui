@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, SubmitEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ComponentPropsWithoutRef, FormEvent } from "react";
 import {
   Alert,
   Box,
@@ -29,6 +30,10 @@ type Message = {
 
 type LLMModel = { id: string };
 
+type MarkdownCodeProps = ComponentPropsWithoutRef<"code"> & {
+  inline?: boolean;
+};
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -48,15 +53,15 @@ export default function Home() {
       .then((data) => {
         const list = Array.isArray(data?.data) ? (data.data as LLMModel[]) : [];
         setModels(list);
-        if (list.length > 0 && !selectedModel) {
-          setSelectedModel(list[0].id);
+        if (list.length > 0) {
+          setSelectedModel((current) => current || list[0].id);
         }
       })
       .catch(() => setModels(null))
       .finally(() => setModelsChecked(true));
   }, []);
 
-  const sendMessage = async (event?: any) => {
+  const sendMessage = async (event?: FormEvent<HTMLFormElement>) => {
     if (event) event.preventDefault();
 
     const prompt = input.trim();
@@ -289,7 +294,7 @@ export default function Home() {
                             h1: ({ children }) => <Typography variant="h5" sx={{ fontWeight: 700, mt: 3, mb: 1 }}>{children}</Typography>,
                             h2: ({ children }) => <Typography variant="h6" sx={{ fontWeight: 700, mt: 3, mb: 1 }}>{children}</Typography>,
                             h3: ({ children }) => <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 2, mb: 1 }}>{children}</Typography>,
-                            code({ node, inline, className, children, ...props }: any) {
+                            code({ inline, className, children, ...props }: MarkdownCodeProps) {
                               const match = /language-(\w+)/.exec(className || '');
                               return !inline ? (
                                 <Paper
