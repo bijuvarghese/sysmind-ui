@@ -13,6 +13,22 @@ type MarkdownMessageProps = {
   content: string;
 };
 
+function compactLinks(content: string) {
+  return content
+    .replace(/\[published:\s*([^\]]+)\]/gi, "_$1_")
+    .replace(/\[rss:\s*(https?:\/\/[^\]\s]+)\]/gi, "[RSS feed]($1)");
+}
+
+function linkLabel(children: ComponentPropsWithoutRef<"a">["children"], href?: string) {
+  const text = String(children);
+
+  if (href && text === href) {
+    return "Link";
+  }
+
+  return children;
+}
+
 export default function MarkdownMessage({ content }: MarkdownMessageProps) {
   return (
     <Box className="markdown-body">
@@ -96,10 +112,25 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
               href={href}
               target="_blank"
               rel="noreferrer"
-              sx={{ color: "secondary.light", textDecorationColor: "rgba(34, 197, 94, 0.55)" }}
+              sx={{
+                color: "text.secondary",
+                fontSize: "0.78rem",
+                fontWeight: 500,
+                textDecorationColor: "rgba(148, 163, 184, 0.35)",
+                textUnderlineOffset: 3,
+              }}
+            >
+              {linkLabel(children, href)}
+            </MuiLink>
+          ),
+          em: ({ children }) => (
+            <Typography
+              component="span"
+              variant="caption"
+              sx={{ color: "text.secondary", fontStyle: "normal", mr: 0.5 }}
             >
               {children}
-            </MuiLink>
+            </Typography>
           ),
           ul: ({ children }) => (
             <Box component="ul" sx={{ ml: 3, my: 2, display: "grid", gap: 1, color: "text.primary" }}>
@@ -153,7 +184,7 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
           hr: () => <Divider sx={{ my: 2, borderColor: "divider" }} />,
         }}
       >
-        {content}
+        {compactLinks(content)}
       </ReactMarkdown>
     </Box>
   );
