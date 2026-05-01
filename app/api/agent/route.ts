@@ -8,6 +8,9 @@ type ChatCompletionChoice = {
   text?: unknown;
 };
 
+const wrapperTextFields = ["response", "answer", "result", "output_text"] as const;
+const nestedTextFields = ["message", "content", "parts", "output", "choices", "candidates", "delta"] as const;
+
 function pushText(values: string[], value: unknown) {
   if (typeof value !== "string") {
     return;
@@ -39,42 +42,36 @@ function collectText(value: unknown, depth = 0): string[] {
   const text: string[] = [];
   const record = value as Record<string, unknown>;
 
-  if (record.type === "reasoning") {
+  if (record.type === "reasoning" || record.type === "reasoning_content") {
     return [];
   }
 
-  pushText(text, record.output_text);
+  for (const field of wrapperTextFields) {
+    const fieldValue = record[field];
+
+    if (typeof fieldValue === "string") {
+      pushText(text, fieldValue);
+    } else {
+      text.push(...collectText(fieldValue, depth + 1));
+    }
+  }
 
   if (record.type !== "reasoning") {
     pushText(text, record.text);
-    pushText(text, record.content);
   }
 
-  if ("message" in record) {
-    text.push(...collectText(record.message, depth + 1));
-  }
-
-  if ("content" in record && Array.isArray(record.content)) {
-    text.push(...record.content.flatMap((item) => collectText(item, depth + 1)));
-  }
-
-  if ("parts" in record && Array.isArray(record.parts)) {
-    text.push(...record.parts.flatMap((item) => collectText(item, depth + 1)));
-  }
-
-  if ("output" in record && Array.isArray(record.output)) {
-    text.push(...record.output.flatMap((item) => collectText(item, depth + 1)));
-  }
-
-  if ("choices" in record && Array.isArray(record.choices)) {
-    text.push(...record.choices.flatMap((item) => collectText(item, depth + 1)));
-  }
-
-  if ("candidates" in record && Array.isArray(record.candidates)) {
-    text.push(...record.candidates.flatMap((item) => collectText(item, depth + 1)));
+  for (const field of nestedTextFields) {
+    if (field in record) {
+      text.push(...collectText(record[field], depth + 1));
+    }
   }
 
   return text;
+}
+
+async function readUpstreamBody(response: Response): Promise<unknown> {
+  const body = await response.text();
+  return parseUpstreamBody(body);
 }
 
 function extractAssistantContent(data: unknown): string | null {
@@ -146,10 +143,7 @@ export async function POST(req: Request) {
     body: JSON.stringify(body),
   });
 
-  const contentType = response.headers.get("content-type") ?? "";
-  const data = contentType.includes("application/json")
-    ? await response.json()
-    : parseUpstreamBody(await response.text());
+  const data = await readUpstreamBody(response);
 
   if (!response.ok) {
     return Response.json(
