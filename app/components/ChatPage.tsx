@@ -8,6 +8,7 @@ import ChatHeader from "./ChatHeader";
 import MessageComposer from "./MessageComposer";
 import MessageList from "./MessageList";
 import type { LLMModel, Message } from "./types";
+import { extractAssistantContent, extractUsage } from "@/app/lib/agentResponse";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -78,11 +79,10 @@ export default function ChatPage() {
       }
 
       const assistantContent =
-        data && typeof data === "object" && "response" in data && typeof data.response === "string"
-          ? data.response
-          : "The agent replied, but I could not find a text response in the payload.";
+        extractAssistantContent(data) ?? "The agent replied, but I could not find a text response in the payload.";
+      const usage = extractUsage(data);
 
-      setMessages((current) => [...current, { role: "assistant", content: assistantContent }]);
+      setMessages((current) => [...current, { role: "assistant", content: assistantContent, usage }]);
     } catch (error) {
       setMessages((current) => [
         ...current,
