@@ -21,7 +21,7 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
         rehypePlugins={[rehypeKatex]}
         components={{
           p: ({ children }) => (
-            <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.8, color: "text.primary" }}>
+            <Typography component="div" variant="body2" sx={{ mb: 2, lineHeight: 1.8, color: "text.primary" }}>
               {children}
             </Typography>
           ),
@@ -42,8 +42,10 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
           ),
           code({ inline, className, children, ...props }: MarkdownCodeProps) {
             const match = /language-(\w+)/.exec(className || "");
+            const codeText = String(children);
+            const isBlock = !inline && (Boolean(match) || codeText.includes("\n"));
 
-            return !inline ? (
+            return isBlock ? (
               <Paper
                 variant="outlined"
                 sx={{
@@ -88,6 +90,7 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
               </Box>
             );
           },
+          pre: ({ children }) => <>{children}</>,
           a: ({ children, href }) => (
             <MuiLink
               href={href}
