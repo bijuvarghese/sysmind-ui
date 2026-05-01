@@ -6,6 +6,8 @@ type ChatCompletionMessage = {
 type ChatCompletionChoice = {
   content?: unknown;
   delta?: ChatCompletionMessage;
+  finish_reason?: unknown;
+  finishReason?: unknown;
   message?: ChatCompletionMessage;
   text?: unknown;
 };
@@ -102,6 +104,17 @@ function extractFromChatCompletion(data: Record<string, unknown>): string | null
   return null;
 }
 
+function stoppedBecauseOfLength(data: Record<string, unknown>): boolean {
+  if (!Array.isArray(data.choices)) {
+    return false;
+  }
+
+  return (data.choices as ChatCompletionChoice[]).some((choice) => {
+    const finishReason = choice.finish_reason ?? choice.finishReason;
+    return finishReason === "length";
+  });
+}
+
 export function extractAssistantContent(data: unknown): string | null {
   if (typeof data === "string") {
     return data.trim() || null;
@@ -123,6 +136,10 @@ export function extractAssistantContent(data: unknown): string | null {
   const chatCompletionText = extractFromChatCompletion(record);
   if (chatCompletionText) {
     return chatCompletionText;
+  }
+
+  if (stoppedBecauseOfLength(record)) {
+    return "The model reached its token limit before producing a final answer. Try asking for a shorter summary or fewer headlines.";
   }
 
   const fallback = collectText(data)

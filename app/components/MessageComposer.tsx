@@ -56,7 +56,7 @@ export default function MessageComposer({
               }
             }
           }}
-          placeholder="Ask about system health..."
+          placeholder="Ask about RAM, disk usage, news, or anything else..."
           aria-label="Message input"
           disabled={loading}
         />
