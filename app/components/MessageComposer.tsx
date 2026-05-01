@@ -40,6 +40,8 @@ export default function MessageComposer({
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <TextField
+          id="message-input"
+          name="message"
           fullWidth
           multiline
           minRows={1}
@@ -88,6 +90,8 @@ export default function MessageComposer({
       </Box>
       {modelsChecked && models && models.length > 0 ? (
         <Select
+          id="model-select"
+          name="model"
           size="small"
           value={selectedModel}
           onChange={(event) => onModelChange(event.target.value)}
