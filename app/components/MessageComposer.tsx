@@ -1,16 +1,32 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { Alert, Box, Button, Stack, TextField } from "@mui/material";
+import type { SyntheticEvent } from "react";
+import { Box, IconButton, MenuItem, Select, Stack, SvgIcon, TextField } from "@mui/material";
+import type { LLMModel } from "./types";
 
 type MessageComposerProps = {
   input: string;
   loading: boolean;
+  connected: boolean;
+  models: LLMModel[] | null;
+  modelsChecked: boolean;
+  selectedModel: string;
+  onModelChange: (model: string) => void;
   onInputChange: (input: string) => void;
-  onSubmit: (event?: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event?: SyntheticEvent<HTMLFormElement>) => void;
 };
 
-export default function MessageComposer({ input, loading, onInputChange, onSubmit }: MessageComposerProps) {
+export default function MessageComposer({
+  input,
+  loading,
+  connected,
+  models,
+  modelsChecked,
+  selectedModel,
+  onModelChange,
+  onInputChange,
+  onSubmit,
+}: MessageComposerProps) {
   return (
     <Box
       component="form"
@@ -22,7 +38,7 @@ export default function MessageComposer({ input, loading, onInputChange, onSubmi
         bgcolor: "rgba(2, 6, 23, 0.48)",
       }}
     >
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <TextField
           fullWidth
           multiline
@@ -42,19 +58,55 @@ export default function MessageComposer({ input, loading, onInputChange, onSubmi
           aria-label="Message input"
           disabled={loading}
         />
-        <Button
+        <IconButton
           type="submit"
-          variant="contained"
           color="primary"
+          aria-label={connected ? "Send message, connected" : "Send message"}
           disabled={loading || !input.trim()}
-          sx={{ minWidth: { xs: "100%", sm: 132 }, py: 1.5 }}
+          sx={{
+            width: 44,
+            height: 44,
+            flex: "0 0 auto",
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            outline: connected ? "2px solid" : "1px solid",
+            outlineColor: connected ? "success.main" : "transparent",
+            outlineOffset: 3,
+            boxShadow: connected ? "0 0 0 5px rgba(34, 197, 94, 0.1)" : "none",
+            "&:hover": { bgcolor: "primary.dark" },
+            "&.Mui-disabled": {
+              bgcolor: "action.disabledBackground",
+              color: "action.disabled",
+              outlineColor: connected ? "success.main" : "transparent",
+            },
+          }}
         >
-          Send
-        </Button>
+          <SvgIcon fontSize="small" viewBox="0 0 24 24">
+            <path d="M3.4 20.4 21.2 12 3.4 3.6 3 10.1l10.7 1.9L3 13.9l.4 6.5Z" />
+          </SvgIcon>
+        </IconButton>
       </Stack>
-      <Alert severity="info" sx={{ mt: 1.5, bgcolor: "rgba(2, 132, 199, 0.12)" }}>
-        Responses are rendered with full Markdown and LaTeX math support!
-      </Alert>
+      {modelsChecked && models && models.length > 0 ? (
+        <Select
+          size="small"
+          value={selectedModel}
+          onChange={(event) => onModelChange(event.target.value)}
+          sx={{
+            mt: 1,
+            width: { xs: "100%", sm: 280 },
+            height: 32,
+            fontSize: "0.875rem",
+            bgcolor: "rgba(15, 23, 42, 0.4)",
+            "& .MuiSelect-select": { py: 0.5 },
+          }}
+        >
+          {models.map((model) => (
+            <MenuItem key={model.id} value={model.id} sx={{ fontSize: "0.875rem" }}>
+              {model.id}
+            </MenuItem>
+          ))}
+        </Select>
+      ) : null}
     </Box>
   );
 }

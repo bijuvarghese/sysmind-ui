@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { SyntheticEvent } from "react";
 import { Box, LinearProgress, Paper, Typography } from "@mui/material";
 import "katex/dist/katex.min.css";
 import ChatHeader from "./ChatHeader";
@@ -36,7 +36,7 @@ export default function ChatPage() {
       .finally(() => setModelsChecked(true));
   }, []);
 
-  const sendMessage = async (event?: FormEvent<HTMLFormElement>) => {
+  const sendMessage = async (event?: SyntheticEvent<HTMLFormElement>) => {
     if (event) event.preventDefault();
 
     const prompt = input.trim();
@@ -97,6 +97,7 @@ export default function ChatPage() {
   };
 
   const hasMessages = messages.length > 0;
+  const connected = modelsChecked && Boolean(models?.length);
 
   return (
     <Box
@@ -117,12 +118,7 @@ export default function ChatPage() {
           gap: 2.5,
         }}
       >
-        <ChatHeader
-          models={models}
-          modelsChecked={modelsChecked}
-          selectedModel={selectedModel}
-          onModelChange={setSelectedModel}
-        />
+        <ChatHeader />
 
         <Paper
           elevation={0}
@@ -153,7 +149,17 @@ export default function ChatPage() {
           </Box>
 
           <MessageList messages={messages} loading={loading} endRef={endRef} />
-          <MessageComposer input={input} loading={loading} onInputChange={setInput} onSubmit={sendMessage} />
+          <MessageComposer
+            input={input}
+            loading={loading}
+            connected={connected}
+            models={models}
+            modelsChecked={modelsChecked}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            onInputChange={setInput}
+            onSubmit={sendMessage}
+          />
         </Paper>
       </Box>
     </Box>
