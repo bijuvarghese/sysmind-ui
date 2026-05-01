@@ -1,7 +1,7 @@
 "use client";
 
 import type { SyntheticEvent } from "react";
-import { Box, IconButton, MenuItem, Select, Stack, SvgIcon, TextField } from "@mui/material";
+import { Box, IconButton, MenuItem, Select, SvgIcon, TextField } from "@mui/material";
 import type { LLMModel } from "./types";
 
 type MessageComposerProps = {
@@ -38,7 +38,7 @@ export default function MessageComposer({
         bgcolor: "rgba(2, 6, 23, 0.48)",
       }}
     >
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <TextField
           fullWidth
           multiline
@@ -85,7 +85,7 @@ export default function MessageComposer({
             <path d="M3.4 20.4 21.2 12 3.4 3.6 3 10.1l10.7 1.9L3 13.9l.4 6.5Z" />
           </SvgIcon>
         </IconButton>
-      </Stack>
+      </Box>
       {modelsChecked && models && models.length > 0 ? (
         <Select
           size="small"
