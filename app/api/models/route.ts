@@ -1,68 +1,45 @@
-function parseUpstreamBody(body: string): unknown {
-  const trimmed = body.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  if (
-    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-    (trimmed.startsWith("[") && trimmed.endsWith("]"))
-  ) {
-    try {
-      return JSON.parse(trimmed);
-    } catch {
-      return body;
-    }
-  }
-
-  return body;
-}
-
-async function readUpstreamBody(response: Response): Promise<unknown> {
-  const contentType = response.headers.get("content-type") ?? "";
-  const body = await response.text();
-
-  if (contentType.includes("application/json")) {
-    return parseUpstreamBody(body);
-  }
-
-  return parseUpstreamBody(body);
-}
+type McpTool = {
+  name?: unknown;
+};
 
 export async function GET() {
   const mcpBaseUrl = process.env.MCP_BACKEND_URL ?? "http://localhost:8080";
 
   try {
-    const response = await fetch(`${mcpBaseUrl}/v1/models`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${mcpBaseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: Date.now(),
+        method: "tools/list",
+        params: {},
+      }),
     });
 
-    const data = await readUpstreamBody(response);
+    const data = await response.json().catch(() => null);
 
     if (!response.ok) {
       return Response.json(
-        { error: "Failed to fetch models from upstream.", status: response.status, data },
+        { error: "Failed to fetch MCP tools.", status: response.status, data },
         { status: response.status },
       );
     }
 
-    if (!data || typeof data !== "object") {
-      return Response.json(
-        {
-          error: "Upstream models response did not include a JSON object.",
-          data,
-        },
-        { status: 502 },
-      );
-    }
+    const tools = Array.isArray(data?.result?.tools) ? (data.result.tools as McpTool[]) : [];
 
-    return Response.json(data);
+    return Response.json({
+      data: tools
+        .map((tool) => (typeof tool.name === "string" ? { id: tool.name } : null))
+        .filter(Boolean),
+    });
   } catch (error) {
     return Response.json(
       {
-        error: "Failed to reach models upstream.",
+        error: "Failed to reach MCP backend.",
         detail: error instanceof Error ? error.message : "Unknown upstream error.",
       },
       { status: 502 },

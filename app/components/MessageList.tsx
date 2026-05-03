@@ -43,10 +43,10 @@ function EmptyState() {
         }}
       >
         <Typography variant="h6" component="p" sx={{ mb: 1 }}>
-          Start a conversation
+          Call an MCP tool
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Ask about system health, agent state, or anything you want to check. Messages will appear here.
+          Select a tool, enter JSON arguments, and the result will appear here.
         </Typography>
       </Paper>
     </Box>
@@ -80,71 +80,13 @@ function MessageBubble({ message }: { message: Message }) {
         }}
       >
         {message.role === "assistant" ? (
-          <>
-            <MarkdownMessage content={message.content} />
-            <UsageSummary usage={message.usage} />
-          </>
+          <MarkdownMessage content={message.content} />
         ) : (
           <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
             {message.content}
           </Typography>
         )}
       </Paper>
-    </Box>
-  );
-}
-
-function UsageSummary({ usage }: { usage: Message["usage"] }) {
-  if (!usage) {
-    return null;
-  }
-
-  const stats = [
-    ["Total tokens", usage.totalTokens],
-    ["Input tokens", usage.promptTokens],
-    ["Response tokens", usage.completionTokens],
-    ["Reasoning tokens", usage.reasoningTokens],
-  ].filter((stat): stat is [string, number] => typeof stat[1] === "number");
-
-  if (stats.length === 0) {
-    return null;
-  }
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 0.75,
-        mt: 1.5,
-        pt: 1.25,
-        borderTop: "1px solid",
-        borderColor: "rgba(148, 163, 184, 0.14)",
-      }}
-    >
-      {stats.map(([label, value]) => (
-        <Box
-          key={label}
-          sx={{
-            display: "inline-flex",
-            alignItems: "baseline",
-            gap: 0.5,
-            px: 1,
-            py: 0.35,
-            border: "1px solid",
-            borderColor: "rgba(148, 163, 184, 0.16)",
-            borderRadius: 1,
-            bgcolor: "rgba(2, 6, 23, 0.24)",
-          }}
-        >
-          <Typography component="span" variant="caption" sx={{ color: "text.secondary", lineHeight: 1 }}>
-            {label}
-          </Typography>
-          <Typography component="span" variant="caption" sx={{ color: "text.primary", fontWeight: 700, lineHeight: 1 }}>
-            {value.toLocaleString()}
-          </Typography>
-        </Box>
-      ))}
     </Box>
   );
 }

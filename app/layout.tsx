@@ -4,7 +4,7 @@ import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: "SysMind MCP",
-  description: "Material UI chat interface for the SysMind agent",
+  description: "Material UI tool interface for the SysMind MCP server",
 };
 
 export default function RootLayout({

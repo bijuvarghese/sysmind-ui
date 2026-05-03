@@ -8,7 +8,6 @@ import ChatHeader from "./ChatHeader";
 import MessageComposer from "./MessageComposer";
 import MessageList from "./MessageList";
 import type { LLMModel, Message } from "./types";
-import { extractAssistantContent, extractUsage } from "@/app/lib/agentResponse";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,7 +48,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/agent", {
+      const res = await fetch("/api/tool-call", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,16 +78,17 @@ export default function ChatPage() {
       }
 
       const assistantContent =
-        extractAssistantContent(data) ?? "The agent replied, but I could not find a text response in the payload.";
-      const usage = extractUsage(data);
+        data && typeof data === "object" && "response" in data && typeof data.response === "string"
+          ? data.response
+          : "The MCP tool replied, but I could not find a text response in the payload.";
 
-      setMessages((current) => [...current, { role: "assistant", content: assistantContent, usage }]);
+      setMessages((current) => [...current, { role: "assistant", content: assistantContent }]);
     } catch (error) {
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          content: error instanceof Error ? error.message : "Sorry, I couldn't reach the agent endpoint.",
+          content: error instanceof Error ? error.message : "Sorry, I couldn't reach the MCP tool endpoint.",
         },
       ]);
     } finally {
@@ -143,8 +143,8 @@ export default function ChatPage() {
               borderColor: "divider",
             }}
           >
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No tool calls yet"}
             </Typography>
           </Box>
 

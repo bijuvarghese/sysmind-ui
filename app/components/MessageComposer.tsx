@@ -56,14 +56,14 @@ export default function MessageComposer({
               }
             }
           }}
-          placeholder="Ask about RAM, disk usage, news, or anything else..."
-          aria-label="Message input"
+          placeholder='Enter tool arguments as JSON, or a news query for latest_news'
+          aria-label="Tool arguments"
           disabled={loading}
         />
         <IconButton
           type="submit"
           color="primary"
-          aria-label={connected ? "Send message, connected" : "Send message"}
+          aria-label={connected ? "Call MCP tool, connected" : "Call MCP tool"}
           disabled={loading || !input.trim()}
           sx={{
             width: 44,

@@ -1,17 +1,17 @@
 # sysmind-ui
 
-Next.js 16 frontend for SysMind. It provides a Material UI chat interface, model selection, Markdown/LaTeX response rendering, and API routes that proxy to the MCP backend.
+Next.js 16 frontend for SysMind. It provides a Material UI tool-calling interface and API routes that call the MCP backend over JSON-RPC.
 
 ## Structure
 
 - `app/page.tsx`: small route entry.
-- `app/components/ChatPage.tsx`: chat state, model loading, and send-message flow.
-- `app/components/ChatHeader.tsx`: title, connection state, and model selector.
+- `app/components/ChatPage.tsx`: tool-call state, tool loading, and send flow.
+- `app/components/ChatHeader.tsx`: title and connection state.
 - `app/components/MessageList.tsx`: empty state, message bubbles, and loading indicator.
 - `app/components/MarkdownMessage.tsx`: Markdown, tables, code blocks, and LaTeX rendering.
-- `app/components/MessageComposer.tsx`: prompt input and send action.
-- `app/api/agent/route.ts`: proxies chat requests to `MCP_BACKEND_URL`.
-- `app/api/models/route.ts`: proxies model listing and safely handles non-JSON upstream failures.
+- `app/components/MessageComposer.tsx`: tool argument input and call action.
+- `app/api/tool-call/route.ts`: calls MCP `tools/call` through `MCP_BACKEND_URL`.
+- `app/api/models/route.ts`: calls MCP `tools/list` and adapts tools for the UI selector.
 
 ## Configuration
 
