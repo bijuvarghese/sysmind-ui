@@ -2,6 +2,8 @@
 
 Next.js 16 frontend for SysMind. It provides a Material UI tool-calling interface and API routes that call the MCP backend over JSON-RPC.
 
+The UI loads available tools from MCP `tools/list`, so newly registered backend tools such as `machine_status` appear without hard-coding them in the frontend.
+
 ## Structure
 
 - `app/page.tsx`: small route entry.
@@ -26,6 +28,24 @@ When running through the root Docker Compose stack, this is injected as:
 ```env
 MCP_BACKEND_URL=http://sysmind-mcp:8080
 ```
+
+The API routes append `/mcp` when calling the backend, so `MCP_BACKEND_URL` should be the backend origin, not the full MCP path.
+
+## Tool Calls
+
+The tool selector is populated from MCP `tools/list`.
+
+For most tools, enter JSON arguments or leave the argument box as `{}`. For `latest_news`, plain text is treated as the `query` argument. Examples:
+
+```json
+{}
+```
+
+```json
+{"query":"AI policy India","language":"hi-IN","country":"IN"}
+```
+
+Read-only tools currently exposed by the backend are `disk_usage`, `ram_usage`, `latest_news`, `chroma_status`, and `machine_status`.
 
 ## Development
 
