@@ -4,6 +4,11 @@ Next.js 16 frontend for SysMind. It provides a Material UI tool-calling interfac
 
 The UI loads available tools from MCP `tools/list`, so newly registered backend tools such as `machine_status` appear without hard-coding them in the frontend.
 
+In the full SysMind workspace, this service sits beside:
+
+- `sysmind-mcp`: the stateless MCP backend that serves the tools this UI lists and calls.
+- `sysmind-agent`: the Spring AI agent service that can use the same MCP backend for tool access.
+
 ## Structure
 
 - `app/page.tsx`: small route entry.
@@ -91,3 +96,5 @@ The root `docker-compose.yml` builds this service and runs it behind nginx. Use 
 ../deploy.sh
 ../shutdown.sh
 ```
+
+The root Compose stack currently runs the UI, MCP backend, Chroma, and nginx. `sysmind-agent` is a sibling service submodule that runs locally until it is added to Compose.
