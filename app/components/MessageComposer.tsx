@@ -1,17 +1,12 @@
 "use client";
 
 import type { SyntheticEvent } from "react";
-import { Box, IconButton, MenuItem, Select, SvgIcon, TextField } from "@mui/material";
-import type { LLMModel } from "./types";
+import { Box, IconButton, SvgIcon, TextField } from "@mui/material";
 
 type MessageComposerProps = {
   input: string;
   loading: boolean;
   connected: boolean;
-  models: LLMModel[] | null;
-  modelsChecked: boolean;
-  selectedModel: string;
-  onModelChange: (model: string) => void;
   onInputChange: (input: string) => void;
   onSubmit: (event?: SyntheticEvent<HTMLFormElement>) => void;
 };
@@ -20,10 +15,6 @@ export default function MessageComposer({
   input,
   loading,
   connected,
-  models,
-  modelsChecked,
-  selectedModel,
-  onModelChange,
   onInputChange,
   onSubmit,
 }: MessageComposerProps) {
@@ -56,14 +47,14 @@ export default function MessageComposer({
               }
             }
           }}
-          placeholder='Enter tool arguments as JSON, or a news query for latest_news'
-          aria-label="Tool arguments"
+          placeholder="Ask SysMind about your machine, news, memory, disk, or Chroma status"
+          aria-label="Message"
           disabled={loading}
         />
         <IconButton
           type="submit"
           color="primary"
-          aria-label={connected ? "Call MCP tool, connected" : "Call MCP tool"}
+          aria-label={connected ? "Send message, connected" : "Send message"}
           disabled={loading || !input.trim()}
           sx={{
             width: 44,
@@ -88,29 +79,6 @@ export default function MessageComposer({
           </SvgIcon>
         </IconButton>
       </Box>
-      {modelsChecked && models && models.length > 0 ? (
-        <Select
-          id="model-select"
-          name="model"
-          size="small"
-          value={selectedModel}
-          onChange={(event) => onModelChange(event.target.value)}
-          sx={{
-            mt: 1,
-            width: { xs: "100%", sm: 280 },
-            height: 32,
-            fontSize: "0.875rem",
-            bgcolor: "rgba(15, 23, 42, 0.4)",
-            "& .MuiSelect-select": { py: 0.5 },
-          }}
-        >
-          {models.map((model) => (
-            <MenuItem key={model.id} value={model.id} sx={{ fontSize: "0.875rem" }}>
-              {model.id}
-            </MenuItem>
-          ))}
-        </Select>
-      ) : null}
     </Box>
   );
 }

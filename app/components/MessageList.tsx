@@ -43,10 +43,10 @@ function EmptyState() {
         }}
       >
         <Typography variant="h6" component="p" sx={{ mb: 1 }}>
-          Call an MCP tool
+          Ask SysMind
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Select a tool, enter JSON arguments, and the result will appear here.
+          Ask about machine status, RAM, disk, Chroma, or news. The agent will call tools when needed.
         </Typography>
       </Paper>
     </Box>

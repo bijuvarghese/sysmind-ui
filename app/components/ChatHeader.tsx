@@ -24,7 +24,7 @@ export default function ChatHeader() {
       >
         <Box>
           <Typography variant="h4" component="h1">
-            SysMind MCP
+            SysMind Agent
           </Typography>
         </Box>
       </Box>

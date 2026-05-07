@@ -15,7 +15,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<LLMModel[] | null>(null);
   const [modelsChecked, setModelsChecked] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<string>("");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -28,9 +27,6 @@ export default function ChatPage() {
       .then((data) => {
         const list = Array.isArray(data?.data) ? (data.data as LLMModel[]) : [];
         setModels(list);
-        if (list.length > 0) {
-          setSelectedModel((current) => current || list[0].id);
-        }
       })
       .catch(() => setModels(null))
       .finally(() => setModelsChecked(true));
@@ -53,7 +49,7 @@ export default function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt, model: selectedModel }),
+        body: JSON.stringify({ prompt }),
       });
 
       const data = await res.json();
@@ -80,7 +76,7 @@ export default function ChatPage() {
       const assistantContent =
         data && typeof data === "object" && "response" in data && typeof data.response === "string"
           ? data.response
-          : "The MCP tool replied, but I could not find a text response in the payload.";
+          : "The SysMind agent replied, but I could not find a text answer in the payload.";
 
       setMessages((current) => [...current, { role: "assistant", content: assistantContent }]);
     } catch (error) {
@@ -88,7 +84,7 @@ export default function ChatPage() {
         ...current,
         {
           role: "assistant",
-          content: error instanceof Error ? error.message : "Sorry, I couldn't reach the MCP tool endpoint.",
+          content: error instanceof Error ? error.message : "Sorry, I couldn't reach the SysMind agent.",
         },
       ]);
     } finally {
@@ -144,7 +140,7 @@ export default function ChatPage() {
             }}
           >
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No tool calls yet"}
+              {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
             </Typography>
           </Box>
 
@@ -153,10 +149,6 @@ export default function ChatPage() {
             input={input}
             loading={loading}
             connected={connected}
-            models={models}
-            modelsChecked={modelsChecked}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
             onInputChange={setInput}
             onSubmit={sendMessage}
           />

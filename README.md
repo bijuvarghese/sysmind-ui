@@ -1,56 +1,54 @@
 # sysmind-ui
 
-Next.js 16 frontend for SysMind. It provides a Material UI tool-calling interface and API routes that call the MCP backend over JSON-RPC.
+Next.js 16 frontend for SysMind. It provides a Material UI chat interface and API routes that call the SysMind agent.
 
-The UI loads available tools from MCP `tools/list`, so newly registered backend tools such as `machine_status` appear without hard-coding them in the frontend.
+The UI talks to `sysmind-agent`, and the agent decides when to call MCP tools such as `machine_status`.
 
 In the full SysMind workspace, this service sits beside:
 
-- `sysmind-mcp`: the stateless MCP backend that serves the tools this UI lists and calls.
-- `sysmind-agent`: the Spring AI agent service that can use the same MCP backend for tool access.
+- `sysmind-mcp`: the stateless MCP backend that serves local tools.
+- `sysmind-agent`: the Spring AI agent service that plans responses and calls MCP tools.
 
 ## Structure
 
 - `app/page.tsx`: small route entry.
-- `app/components/ChatPage.tsx`: tool-call state, tool loading, and send flow.
+- `app/components/ChatPage.tsx`: chat state, agent health check, and send flow.
 - `app/components/ChatHeader.tsx`: title and connection state.
 - `app/components/MessageList.tsx`: empty state, message bubbles, and loading indicator.
 - `app/components/MarkdownMessage.tsx`: Markdown, tables, code blocks, and LaTeX rendering.
-- `app/components/MessageComposer.tsx`: tool argument input and call action.
-- `app/api/tool-call/route.ts`: calls MCP `tools/call` through `MCP_BACKEND_URL`.
-- `app/api/models/route.ts`: calls MCP `tools/list` and adapts tools for the UI selector.
+- `app/components/MessageComposer.tsx`: chat input and send action.
+- `app/api/tool-call/route.ts`: calls `sysmind-agent` through `AGENT_BACKEND_URL`.
+- `app/api/models/route.ts`: checks agent health for UI connection state.
 
 ## Configuration
 
 The UI API routes read:
 
 ```env
-MCP_BACKEND_URL=http://localhost:8080
+AGENT_BACKEND_URL=http://localhost:4000
 ```
 
 When running through the root Docker Compose stack, this is injected as:
 
 ```env
-MCP_BACKEND_URL=http://sysmind-mcp:8080
+AGENT_BACKEND_URL=http://sysmind-agent:4000
 ```
 
-The API routes append `/mcp` when calling the backend, so `MCP_BACKEND_URL` should be the backend origin, not the full MCP path.
+The API routes append `/api/chat` when calling the agent, so `AGENT_BACKEND_URL` should be the agent origin.
 
-## Tool Calls
+## Agent Chat
 
-The tool selector is populated from MCP `tools/list`.
+Ask the agent natural-language questions. Examples:
 
-For most tools, enter JSON arguments or leave the argument box as `{}`. For `latest_news`, plain text is treated as the `query` argument. Examples:
-
-```json
-{}
+```text
+Check my machine status.
 ```
 
-```json
-{"query":"AI policy India","language":"hi-IN","country":"IN"}
+```text
+What is my RAM usage?
 ```
 
-Read-only tools currently exposed by the backend are `disk_usage`, `ram_usage`, `latest_news`, `chroma_status`, and `machine_status`.
+The agent can call read-only MCP tools exposed by the backend, including `disk_usage`, `ram_usage`, `latest_news`, `chroma_status`, and `machine_status`.
 
 ## Development
 
@@ -97,4 +95,4 @@ The root `docker-compose.yml` builds this service and runs it behind nginx. Use 
 ../shutdown.sh
 ```
 
-The root Compose stack currently runs the UI, MCP backend, Chroma, and nginx. `sysmind-agent` is a sibling service submodule that runs locally until it is added to Compose.
+The root Compose stack runs the UI, agent, MCP backend, Chroma, and nginx.
