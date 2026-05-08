@@ -17,6 +17,7 @@ In the full SysMind workspace, this service sits beside:
 - `app/components/MessageList.tsx`: empty state, message bubbles, and loading indicator.
 - `app/components/MarkdownMessage.tsx`: Markdown, tables, code blocks, and LaTeX rendering.
 - `app/components/MessageComposer.tsx`: chat input and send action.
+- `app/lib/tool-formatters.ts`: shared formatting for streamed and non-streamed tool results.
 - `app/api/tool-call/route.ts`: calls `sysmind-agent` through `AGENT_BACKEND_URL`.
 - `app/api/tool-call/stream/route.ts`: proxies streamed agent events for live chat updates.
 - `app/api/models/route.ts`: checks agent health for UI connection state.
@@ -27,6 +28,7 @@ The UI API routes read:
 
 ```env
 AGENT_BACKEND_URL=http://localhost:4000
+NEXT_ALLOWED_DEV_ORIGINS=
 ```
 
 When running through the root Docker Compose stack, this is injected as:
@@ -36,6 +38,8 @@ AGENT_BACKEND_URL=http://sysmind-agent:4000
 ```
 
 The API routes append `/api/chat` or `/api/chat/stream` when calling the agent, so `AGENT_BACKEND_URL` should be the agent origin.
+
+Set `NEXT_ALLOWED_DEV_ORIGINS` to a comma-separated list of LAN hosts only when you need to access the Next dev server from another device, for example `192.168.1.154`.
 
 ## Agent Chat
 
@@ -50,6 +54,8 @@ Show my latest news.
 ```
 
 The agent can call read-only MCP tools exposed by the backend, including `latest_news`, `chroma_status`, and `machine_status`.
+
+Tool-result display is shared between the streaming chat path and the non-streaming API route, so new tool renderers only need to be added once.
 
 ## Development
 
@@ -87,6 +93,12 @@ Build production output:
 npm run build
 ```
 
+Validate the standalone Compose file:
+
+```bash
+docker compose config
+```
+
 ## Docker
 
 The root `docker-compose.yml` builds this service and runs it behind nginx. Use the root scripts:
@@ -97,3 +109,5 @@ The root `docker-compose.yml` builds this service and runs it behind nginx. Use 
 ```
 
 The root Compose stack runs the UI, agent, MCP backend, Chroma, and nginx.
+
+The Compose service includes a health check against the local Next server so the root nginx service can wait for the UI to be ready.
