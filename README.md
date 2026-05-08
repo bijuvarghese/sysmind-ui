@@ -18,6 +18,7 @@ In the full SysMind workspace, this service sits beside:
 - `app/components/MarkdownMessage.tsx`: Markdown, tables, code blocks, and LaTeX rendering.
 - `app/components/MessageComposer.tsx`: chat input and send action.
 - `app/api/tool-call/route.ts`: calls `sysmind-agent` through `AGENT_BACKEND_URL`.
+- `app/api/tool-call/stream/route.ts`: proxies streamed agent events for live chat updates.
 - `app/api/models/route.ts`: checks agent health for UI connection state.
 
 ## Configuration
@@ -34,7 +35,7 @@ When running through the root Docker Compose stack, this is injected as:
 AGENT_BACKEND_URL=http://sysmind-agent:4000
 ```
 
-The API routes append `/api/chat` when calling the agent, so `AGENT_BACKEND_URL` should be the agent origin.
+The API routes append `/api/chat` or `/api/chat/stream` when calling the agent, so `AGENT_BACKEND_URL` should be the agent origin.
 
 ## Agent Chat
 
