@@ -10,8 +10,11 @@ body {
 
 body {
   background:
-    radial-gradient(circle at top, rgba(124, 58, 237, 0.2), transparent 38%),
-    linear-gradient(180deg, #050816 0%, #0b1220 100%);
+    linear-gradient(90deg, rgba(0, 229, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 61, 242, 0.07) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(0, 229, 255, 0.18) 0%, transparent 24%, rgba(255, 209, 102, 0.11) 49%, transparent 70%),
+    linear-gradient(180deg, #02030a 0%, #07111f 48%, #02030a 100%);
+  background-size: 44px 44px, 44px 44px, 100% 100%, 100% 100%;
   color: #f8fafc;
 }
 
@@ -21,4 +24,13 @@ body {
 
 a {
   color: inherit;
+}
+
+::selection {
+  background: rgba(0, 229, 255, 0.35);
+  color: #ffffff;
+}
+
+* {
+  scrollbar-color: rgba(0, 229, 255, 0.55) rgba(7, 17, 31, 0.75);
 }

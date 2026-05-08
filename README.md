@@ -46,10 +46,10 @@ Check my machine status.
 ```
 
 ```text
-What is my RAM usage?
+Show my latest news.
 ```
 
-The agent can call read-only MCP tools exposed by the backend, including `disk_usage`, `ram_usage`, `latest_news`, `chroma_status`, and `machine_status`.
+The agent can call read-only MCP tools exposed by the backend, including `latest_news`, `chroma_status`, and `machine_status`.
 
 ## Development
 

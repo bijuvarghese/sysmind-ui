@@ -16,6 +16,7 @@ export default function ChatPage() {
   const [models, setModels] = useState<LLMModel[] | null>(null);
   const [modelsChecked, setModelsChecked] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const requestInFlightRef = useRef(false);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -36,8 +37,9 @@ export default function ChatPage() {
     if (event) event.preventDefault();
 
     const prompt = input.trim();
-    if (!prompt || loading) return;
+    if (!prompt || loading || requestInFlightRef.current) return;
 
+    requestInFlightRef.current = true;
     const userMessage: Message = { role: "user", content: prompt };
     setMessages((current) => [...current, userMessage, { role: "assistant", content: "Starting response..." }]);
     setInput("");
@@ -80,12 +82,13 @@ export default function ChatPage() {
       const activity: string[] = [];
       const details: string[] = [];
       const displayedToolDetails = new Set<string>();
+      let responseFinished = false;
 
       const renderAssistant = () => {
         const sections = [
           answer.trim(),
           details.join("\n\n").trim(),
-          activity.length > 0 ? `---\n\n**Activity**\n${activity.map((item) => `- ${item}`).join("\n")}` : "",
+          !responseFinished && activity.length > 0 ? `> Activity: ${activity.join(" · ")}` : "",
         ].filter(Boolean);
 
         return sections.join("\n\n") || "Starting response...";
@@ -139,6 +142,7 @@ export default function ChatPage() {
           if (!answer.trim() && typeof streamEvent.message === "string") {
             answer = streamEvent.message;
           }
+          responseFinished = true;
           updateAssistant();
           return;
         }
@@ -147,6 +151,8 @@ export default function ChatPage() {
           throw new Error(typeof streamEvent.message === "string" ? streamEvent.message : "Agent stream failed.");
         }
       });
+      responseFinished = true;
+      updateAssistant();
     } catch (error) {
       setMessages((current) =>
         updateLastAssistantMessage(
@@ -155,6 +161,7 @@ export default function ChatPage() {
         ),
       );
     } finally {
+      requestInFlightRef.current = false;
       setLoading(false);
     }
   };
@@ -166,13 +173,30 @@ export default function ChatPage() {
     <Box
       component="main"
       sx={{
+        position: "relative",
         minHeight: "100vh",
         px: { xs: 2, sm: 3, md: 4 },
         py: { xs: 2, sm: 3 },
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "linear-gradient(120deg, transparent 0%, rgba(0, 229, 255, 0.12) 22%, transparent 38%, rgba(255, 61, 242, 0.1) 62%, transparent 78%)",
+          opacity: 0.85,
+          animation: "scanFlow 12s linear infinite",
+        },
+        "@keyframes scanFlow": {
+          "0%": { transform: "translateX(-35%)" },
+          "100%": { transform: "translateX(35%)" },
+        },
       }}
     >
       <Box
         sx={{
+          position: "relative",
           mx: "auto",
           display: "flex",
           minHeight: "calc(100vh - 32px)",
@@ -188,27 +212,79 @@ export default function ChatPage() {
           sx={{
             flex: 1,
             minHeight: 0,
+            position: "relative",
             overflow: "hidden",
             border: "1px solid",
-            borderColor: "rgba(148, 163, 184, 0.18)",
-            backgroundColor: "rgba(8, 15, 30, 0.82)",
+            borderColor: "rgba(0, 229, 255, 0.24)",
+            background:
+              "linear-gradient(180deg, rgba(7, 17, 31, 0.9) 0%, rgba(2, 3, 10, 0.92) 100%)",
+            boxShadow: "0 30px 90px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
             display: "flex",
             flexDirection: "column",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              background:
+                "linear-gradient(90deg, rgba(0, 229, 255, 0.1) 0 1px, transparent 1px 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 100%)",
+              backgroundSize: "58px 58px",
+              maskImage: "linear-gradient(180deg, black, transparent 85%)",
+            },
           }}
         >
-          {loading ? <LinearProgress color="secondary" /> : null}
+          {loading ? (
+            <LinearProgress
+              sx={{
+                height: 3,
+                bgcolor: "rgba(0, 229, 255, 0.08)",
+                "& .MuiLinearProgress-bar": {
+                  background:
+                    "linear-gradient(90deg, #00e5ff, #9dff4f, #ff3df2)",
+                  boxShadow: "0 0 22px rgba(0, 229, 255, 0.9)",
+                },
+              }}
+            />
+          ) : null}
 
           <Box
             sx={{
+              position: "relative",
               px: { xs: 2, sm: 2.5 },
               py: 1.5,
               borderBottom: "1px solid",
-              borderColor: "divider",
+              borderColor: "rgba(0, 229, 255, 0.16)",
+              background:
+                "linear-gradient(90deg, rgba(0, 229, 255, 0.11), rgba(255, 61, 242, 0.08), transparent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
             }}
           >
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 700 }}>
               {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
             </Typography>
+            <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }} aria-hidden="true">
+              {[0, 1, 2, 3, 4].map((bar) => (
+                <Box
+                  key={bar}
+                  sx={{
+                    width: 4,
+                    height: 12 + bar * 2,
+                    bgcolor: bar % 2 === 0 ? "primary.main" : "secondary.main",
+                    opacity: loading ? 1 : 0.42,
+                    boxShadow: loading ? "0 0 14px currentColor" : "none",
+                    animation: loading ? "levelBounce 0.9s ease-in-out infinite" : "none",
+                    animationDelay: `${bar * 0.08}s`,
+                    "@keyframes levelBounce": {
+                      "0%, 100%": { transform: "scaleY(0.45)" },
+                      "50%": { transform: "scaleY(1.15)" },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
           </Box>
 
           <MessageList messages={messages} loading={loading} endRef={endRef} />
@@ -302,14 +378,6 @@ function formatToolResultForUser(toolName: string, content: unknown): string {
     return formatMachineStatus(normalized);
   }
 
-  if (inferredToolName === "ram_usage" && isRecord(normalized)) {
-    return formatUsageStatus("RAM status", normalized);
-  }
-
-  if (inferredToolName === "disk_usage" && isRecord(normalized)) {
-    return formatUsageStatus("Disk status", normalized);
-  }
-
   if (inferredToolName === "chroma_status" && isRecord(normalized)) {
     return formatChromaStatus(normalized);
   }
@@ -358,22 +426,6 @@ function formatMachineStatus(status: Record<string, unknown>): string {
     .join("\n");
 }
 
-function formatUsageStatus(title: string, usage: Record<string, unknown>): string {
-  const free = numberAt(usage, "free");
-  const total = numberAt(usage, "total");
-  const used = numberAt(usage, "used");
-  const usagePercent = total && used != null ? (used / total) * 100 : null;
-
-  return [
-    `**${title}**`,
-    bullet("Used", used != null && total != null ? `${formatBytes(used)} of ${formatBytes(total)}` : formatMaybeBytes(used)),
-    bullet("Free", formatMaybeBytes(free)),
-    bullet("Usage", usagePercent == null ? null : formatPercent(usagePercent)),
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 function formatChromaStatus(status: Record<string, unknown>): string {
   const healthy = booleanAt(status, "healthy");
   return [
@@ -392,17 +444,17 @@ function formatChromaStatus(status: Record<string, unknown>): string {
 
 function formatNewsResult(result: Record<string, unknown>): string {
   const articles = Array.isArray(result.articles) ? result.articles.filter(isRecord) : [];
+  const fetchedAt = formatReadableDateTime(textAt(result, "fetchedAt"));
   const lines = [
     "**Latest news**",
-    bullet("Fetched", textAt(result, "fetchedAt")),
-    bullet("Feed", textAt(result, "feedUrl")),
+    fetchedAt ? `> Updated ${fetchedAt}` : null,
     bullet("Error", textAt(result, "error")),
   ].filter(Boolean);
 
   for (const article of articles.slice(0, 8)) {
     const title = textAt(article, "title");
     const source = textAt(article, "source");
-    const publishedAt = textAt(article, "publishedAt");
+    const publishedAt = formatReadableDateTime(textAt(article, "publishedAt"));
     const url = textAt(article, "url");
     const details = [source, publishedAt].filter(Boolean).join(" - ");
 
@@ -614,23 +666,6 @@ function secondsAt(record: Record<string, unknown> | null, key: string): string 
     .join(" ");
 }
 
-function formatMaybeBytes(value: number | null): string | null {
-  return value == null ? null : formatBytes(value);
-}
-
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = Math.max(0, bytes);
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${formatNumber(value)} ${units[unitIndex]}`;
-}
-
 function formatNumber(value: number): string {
   return new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(value);
 }
@@ -654,6 +689,20 @@ function labelFromKey(key: string): string {
 
 function escapeMarkdown(value: string): string {
   return value.replace(/([\\[\]])/g, "\\$1");
+}
+
+function formatReadableDateTime(value: string | null): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

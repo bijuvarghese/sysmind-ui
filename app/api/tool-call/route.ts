@@ -49,14 +49,6 @@ function formatToolResult(toolResult: NonNullable<AgentStep["toolResult"]>): str
     return [formatMachineStatus(content)];
   }
 
-  if (displayName === "ram_usage" && isRecord(content)) {
-    return [formatRamStatus(content)];
-  }
-
-  if (displayName === "disk_usage" && isRecord(content)) {
-    return [formatDiskStatus(content)];
-  }
-
   if (displayName === "chroma_status" && isRecord(content)) {
     return [formatChromaStatus(content)];
   }
@@ -226,38 +218,6 @@ function powerSummary(power: Record<string, unknown> | null): string | null {
   return parts.length > 0 ? parts.join("; ") : null;
 }
 
-function formatRamStatus(memory: Record<string, unknown>): string {
-  const free = numberAt(memory, "free");
-  const total = numberAt(memory, "total");
-  const used = numberAt(memory, "used");
-  const usage = total && used != null ? (used / total) * 100 : null;
-
-  return [
-    "**RAM status**",
-    bullet("Used", used != null && total != null ? `${formatBytes(used)} of ${formatBytes(total)}` : formatMaybeBytes(used)),
-    bullet("Free", formatMaybeBytes(free)),
-    bullet("Usage", usage == null ? null : formatPercent(usage)),
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-function formatDiskStatus(storage: Record<string, unknown>): string {
-  const free = numberAt(storage, "free");
-  const total = numberAt(storage, "total");
-  const used = numberAt(storage, "used");
-  const usage = total && used != null ? (used / total) * 100 : null;
-
-  return [
-    "**Disk status**",
-    bullet("Used", used != null && total != null ? `${formatBytes(used)} of ${formatBytes(total)}` : formatMaybeBytes(used)),
-    bullet("Free", formatMaybeBytes(free)),
-    bullet("Usage", usage == null ? null : formatPercent(usage)),
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 function formatChromaStatus(status: Record<string, unknown>): string {
   const healthy = booleanAt(status, "healthy");
 
@@ -277,17 +237,17 @@ function formatChromaStatus(status: Record<string, unknown>): string {
 
 function formatNewsResult(result: Record<string, unknown>): string {
   const articles = Array.isArray(result.articles) ? result.articles.filter(isRecord) : [];
+  const fetchedAt = formatReadableDateTime(textAt(result, "fetchedAt"));
   const lines = [
     "**Latest news**",
-    bullet("Fetched", textAt(result, "fetchedAt")),
-    bullet("Feed", textAt(result, "feedUrl")),
+    fetchedAt ? `> Updated ${fetchedAt}` : null,
     bullet("Error", textAt(result, "error")),
   ].filter(Boolean);
 
   for (const article of articles.slice(0, 8)) {
     const title = textAt(article, "title");
     const source = textAt(article, "source");
-    const publishedAt = textAt(article, "publishedAt");
+    const publishedAt = formatReadableDateTime(textAt(article, "publishedAt"));
     const url = textAt(article, "url");
     const details = [source, publishedAt].filter(Boolean).join(" - ");
 
@@ -473,25 +433,22 @@ function formatPercent(value: number): string {
   return `${formatNumber(value)}%`;
 }
 
-function formatMaybeBytes(value: number | null): string | null {
-  return value == null ? null : formatBytes(value);
-}
-
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = Math.max(0, bytes);
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${formatNumber(value)} ${units[unitIndex]}`;
-}
-
 function escapeMarkdown(value: string): string {
   return value.replace(/([\\[\]])/g, "\\$1");
+}
+
+function formatReadableDateTime(value: string | null): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

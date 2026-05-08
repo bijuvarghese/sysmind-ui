@@ -147,6 +147,30 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
               {children}
             </Box>
           ),
+          blockquote: ({ children }) => (
+            <Box
+              component="blockquote"
+              sx={{
+                m: 0,
+                mt: 1.25,
+                px: 1.25,
+                py: 0.75,
+                borderLeft: "2px solid rgba(0, 229, 255, 0.24)",
+                bgcolor: "rgba(2, 3, 10, 0.22)",
+                color: "rgba(185, 200, 223, 0.68)",
+                fontSize: "0.72rem",
+                lineHeight: 1.5,
+                "& .MuiTypography-root": {
+                  m: 0,
+                  color: "inherit",
+                  fontSize: "inherit",
+                  lineHeight: "inherit",
+                },
+              }}
+            >
+              {children}
+            </Box>
+          ),
           table: ({ children }) => (
             <Paper variant="outlined" sx={{ overflowX: "auto", borderColor: "rgba(148, 163, 184, 0.2)", mb: 2 }}>
               <Box component="table" sx={{ minWidth: "100%", borderCollapse: "collapse" }}>
