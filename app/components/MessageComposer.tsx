@@ -1,12 +1,13 @@
 "use client";
 
 import type { SyntheticEvent } from "react";
-import { Box, IconButton, SvgIcon, TextField } from "@mui/material";
+import { Box, Chip, IconButton, SvgIcon, TextField } from "@mui/material";
 
 type MessageComposerProps = {
   input: string;
   loading: boolean;
   connected: boolean;
+  selectedToolName: string | null;
   onInputChange: (input: string) => void;
   onSubmit: (event?: SyntheticEvent<HTMLFormElement>) => void;
 };
@@ -15,6 +16,7 @@ export default function MessageComposer({
   input,
   loading,
   connected,
+  selectedToolName,
   onInputChange,
   onSubmit,
 }: MessageComposerProps) {
@@ -26,13 +28,30 @@ export default function MessageComposer({
         position: "relative",
         p: { xs: 2, sm: 2.5 },
         borderTop: "1px solid",
-        borderColor: "rgba(0, 229, 255, 0.18)",
-        bgcolor: "rgba(2, 3, 10, 0.7)",
-        background:
-          "linear-gradient(90deg, rgba(0, 229, 255, 0.08), rgba(255, 61, 242, 0.08), rgba(157, 255, 79, 0.06))",
+        borderColor: "rgba(154, 168, 186, 0.14)",
+        bgcolor: "rgba(15, 20, 28, 0.72)",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {selectedToolName ? (
+          <Chip
+            size="small"
+            label={selectedToolName}
+            sx={{
+              display: { xs: "none", sm: "inline-flex" },
+              maxWidth: 160,
+              borderRadius: 1,
+              border: "1px solid rgba(166, 23, 142, 0.28)",
+              bgcolor: "rgba(166, 23, 142, 0.08)",
+              color: "primary.main",
+              fontWeight: 700,
+              "& .MuiChip-label": {
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+            }}
+          />
+        ) : null}
         <TextField
           id="message-input"
           name="message"
@@ -50,28 +69,26 @@ export default function MessageComposer({
               }
             }
           }}
-          placeholder="Ask SysMind about machine status, news, or Chroma status"
+          placeholder={selectedToolName ? `Ask ${selectedToolName}` : "Ask SysMind about machine status, news, or Chroma status"}
           aria-label="Message"
           disabled={loading}
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: 1,
-              bgcolor: "rgba(2, 3, 10, 0.72)",
+              bgcolor: "rgba(21, 27, 36, 0.95)",
               color: "text.primary",
-              boxShadow: "inset 0 0 24px rgba(0, 229, 255, 0.05)",
               "& fieldset": {
-                borderColor: "rgba(0, 229, 255, 0.28)",
+                borderColor: "rgba(154, 168, 186, 0.2)",
               },
               "&:hover fieldset": {
-                borderColor: "rgba(157, 255, 79, 0.48)",
+                borderColor: "rgba(166, 23, 142, 0.42)",
               },
               "&.Mui-focused fieldset": {
                 borderColor: "primary.main",
-                boxShadow: "0 0 22px rgba(0, 229, 255, 0.25)",
               },
             },
             "& .MuiInputBase-input::placeholder": {
-              color: "rgba(185, 200, 223, 0.72)",
+              color: "rgba(154, 168, 186, 0.78)",
               opacity: 1,
             },
           }}
@@ -85,33 +102,17 @@ export default function MessageComposer({
             width: 48,
             height: 48,
             flex: "0 0 auto",
-            position: "relative",
-            overflow: "hidden",
             bgcolor: "primary.main",
             color: "primary.contrastText",
-            outline: connected ? "2px solid" : "1px solid",
-            outlineColor: connected ? "success.main" : "transparent",
-            outlineOffset: 3,
-            boxShadow: connected
-              ? "0 0 0 5px rgba(157, 255, 79, 0.12), 0 0 28px rgba(0, 229, 255, 0.45)"
-              : "0 0 20px rgba(0, 229, 255, 0.28)",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, transparent, rgba(255,255,255,0.45), transparent)",
-              transform: "translateX(-120%)",
-              transition: "transform 240ms ease",
-            },
+            outline: connected ? "1px solid rgba(139, 213, 202, 0.36)" : "none",
+            outlineOffset: 2,
             "&:hover": {
               bgcolor: "primary.dark",
-              transform: "translateY(-1px)",
-              "&::before": { transform: "translateX(120%)" },
             },
             "&.Mui-disabled": {
               bgcolor: "action.disabledBackground",
               color: "action.disabled",
-              outlineColor: connected ? "success.main" : "transparent",
+              outlineColor: "transparent",
             },
           }}
         >

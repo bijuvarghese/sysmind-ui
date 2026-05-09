@@ -4,28 +4,29 @@ const theme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#00e5ff",
-      dark: "#00a6d6",
-      contrastText: "#001219",
+      main: "#a6178e",
+      dark: "#7d116c",
+      light: "#c640ad",
+      contrastText: "#fff7fd",
     },
     secondary: {
-      main: "#ff3df2",
-      dark: "#c31fb8",
-      contrastText: "#fff7ff",
+      main: "#178ea6",
+      dark: "#0f6f83",
+      contrastText: "#f5fdff",
     },
     success: {
-      main: "#9dff4f",
+      main: "#2fa36b",
     },
     warning: {
-      main: "#ffd166",
+      main: "#d99132",
     },
     background: {
-      default: "#02030a",
-      paper: "#07111f",
+      default: "#100b12",
+      paper: "#17111a",
     },
     text: {
-      primary: "#f9fbff",
-      secondary: "#b9c8df",
+      primary: "#f8eff6",
+      secondary: "#cab8c7",
     },
   },
   shape: {

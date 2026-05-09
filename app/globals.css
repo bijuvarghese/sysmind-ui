@@ -9,13 +9,8 @@ body {
 }
 
 body {
-  background:
-    linear-gradient(90deg, rgba(0, 229, 255, 0.09) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 61, 242, 0.07) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(0, 229, 255, 0.18) 0%, transparent 24%, rgba(255, 209, 102, 0.11) 49%, transparent 70%),
-    linear-gradient(180deg, #02030a 0%, #07111f 48%, #02030a 100%);
-  background-size: 44px 44px, 44px 44px, 100% 100%, 100% 100%;
-  color: #f8fafc;
+  background: #100b12;
+  color: #f8eff6;
 }
 
 * {
@@ -27,10 +22,10 @@ a {
 }
 
 ::selection {
-  background: rgba(0, 229, 255, 0.35);
+  background: rgba(166, 23, 142, 0.35);
   color: #ffffff;
 }
 
 * {
-  scrollbar-color: rgba(0, 229, 255, 0.55) rgba(7, 17, 31, 0.75);
+  scrollbar-color: rgba(166, 23, 142, 0.55) rgba(23, 17, 26, 0.75);
 }

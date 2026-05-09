@@ -5,6 +5,13 @@ export type Message = {
 
 export type LLMModel = { id: string };
 
+export type ToolDefinition = {
+  name: string;
+  description?: string | null;
+  inputSchema?: unknown;
+  outputSchema?: unknown;
+};
+
 export type ToolCall = {
   toolName?: unknown;
   arguments?: unknown;

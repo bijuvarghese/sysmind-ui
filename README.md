@@ -55,6 +55,8 @@ Show my latest news.
 
 The agent can call read-only MCP tools exposed by the backend, including `latest_news`, `chroma_status`, and `machine_status`.
 
+The chat surface fetches available MCP tools from `/api/tools` and renders them as GPT-style tiles. Tapping a tool tile creates the matching prompt, sends it immediately, and steers the agent toward that tool.
+
 Tool-result display is shared between the streaming chat path and the non-streaming API route, so new tool renderers only need to be added once.
 
 ## Development

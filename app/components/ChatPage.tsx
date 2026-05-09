@@ -7,8 +7,9 @@ import "katex/dist/katex.min.css";
 import ChatHeader from "./ChatHeader";
 import MessageComposer from "./MessageComposer";
 import MessageList from "./MessageList";
+import ToolGallery from "./ToolGallery";
 import { formatToolFailure, formatToolResultForUser, toolLabel, toolNameFromResult } from "../lib/tool-formatters";
-import type { ChatEvent, LLMModel, Message } from "./types";
+import type { ChatEvent, LLMModel, Message, ToolDefinition } from "./types";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,6 +17,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<LLMModel[] | null>(null);
   const [modelsChecked, setModelsChecked] = useState(false);
+  const [tools, setTools] = useState<ToolDefinition[]>([]);
+  const [selectedTool, setSelectedTool] = useState<ToolDefinition | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const requestInFlightRef = useRef(false);
 
@@ -34,13 +37,34 @@ export default function ChatPage() {
       .finally(() => setModelsChecked(true));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/tools")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        const list = Array.isArray(data?.data) ? (data.data as ToolDefinition[]) : [];
+        setTools(list.filter((tool) => typeof tool.name === "string" && tool.name.trim()));
+      })
+      .catch(() => setTools([]));
+  }, []);
+
   const sendMessage = async (event?: SyntheticEvent<HTMLFormElement>) => {
     if (event) event.preventDefault();
 
     const prompt = input.trim();
+    await submitPrompt(prompt, selectedTool);
+  };
+
+  const runTool = async (tool: ToolDefinition) => {
+    const prompt = suggestedPromptForTool(tool);
+    setSelectedTool(tool);
+    await submitPrompt(prompt, tool);
+  };
+
+  const submitPrompt = async (prompt: string, tool: ToolDefinition | null) => {
     if (!prompt || loading || requestInFlightRef.current) return;
 
     requestInFlightRef.current = true;
+    const agentPrompt = buildAgentPrompt(prompt, tool);
     const userMessage: Message = { role: "user", content: prompt };
     setMessages((current) => [...current, userMessage, { role: "assistant", content: "Starting response..." }]);
     setInput("");
@@ -52,7 +76,7 @@ export default function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: agentPrompt }),
       });
 
       if (!res.ok) {
@@ -179,20 +203,9 @@ export default function ChatPage() {
         px: { xs: 2, sm: 3, md: 4 },
         py: { xs: 2, sm: 3 },
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          background:
-            "linear-gradient(120deg, transparent 0%, rgba(0, 229, 255, 0.12) 22%, transparent 38%, rgba(255, 61, 242, 0.1) 62%, transparent 78%)",
-          opacity: 0.85,
-          animation: "scanFlow 12s linear infinite",
-        },
-        "@keyframes scanFlow": {
-          "0%": { transform: "translateX(-35%)" },
-          "100%": { transform: "translateX(35%)" },
-        },
+        bgcolor: "#ffffff",
+        backgroundImage: "radial-gradient(circle, rgb(166, 23, 142) 1px, transparent 1px)",
+        backgroundSize: "12px 12px",
       }}
     >
       <Box
@@ -216,33 +229,20 @@ export default function ChatPage() {
             position: "relative",
             overflow: "hidden",
             border: "1px solid",
-            borderColor: "rgba(0, 229, 255, 0.24)",
-            background:
-              "linear-gradient(180deg, rgba(7, 17, 31, 0.9) 0%, rgba(2, 3, 10, 0.92) 100%)",
-            boxShadow: "0 30px 90px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+            borderColor: "rgba(154, 168, 186, 0.18)",
+            bgcolor: "background.paper",
+            boxShadow: "0 18px 48px rgba(0, 0, 0, 0.22)",
             display: "flex",
             flexDirection: "column",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none",
-              background:
-                "linear-gradient(90deg, rgba(0, 229, 255, 0.1) 0 1px, transparent 1px 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 100%)",
-              backgroundSize: "58px 58px",
-              maskImage: "linear-gradient(180deg, black, transparent 85%)",
-            },
           }}
         >
           {loading ? (
             <LinearProgress
               sx={{
                 height: 3,
-                bgcolor: "rgba(0, 229, 255, 0.08)",
+                bgcolor: "rgba(154, 168, 186, 0.12)",
                 "& .MuiLinearProgress-bar": {
-                  background:
-                    "linear-gradient(90deg, #00e5ff, #9dff4f, #ff3df2)",
-                  boxShadow: "0 0 22px rgba(0, 229, 255, 0.9)",
+                  bgcolor: "primary.main",
                 },
               }}
             />
@@ -254,9 +254,8 @@ export default function ChatPage() {
               px: { xs: 2, sm: 2.5 },
               py: 1.5,
               borderBottom: "1px solid",
-              borderColor: "rgba(0, 229, 255, 0.16)",
-              background:
-                "linear-gradient(90deg, rgba(0, 229, 255, 0.11), rgba(255, 61, 242, 0.08), transparent)",
+              borderColor: "rgba(154, 168, 186, 0.14)",
+              bgcolor: "rgba(15, 20, 28, 0.52)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -266,22 +265,14 @@ export default function ChatPage() {
             <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 700 }}>
               {hasMessages ? `${messages.length} message${messages.length === 1 ? "" : "s"}` : "No messages yet"}
             </Typography>
-            <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }} aria-hidden="true">
+            <Box sx={{ display: "flex", gap: 0.6, alignItems: "center" }} aria-hidden="true">
               {[0, 1, 2, 3, 4].map((bar) => (
                 <Box
                   key={bar}
                   sx={{
                     width: 4,
                     height: 12 + bar * 2,
-                    bgcolor: bar % 2 === 0 ? "primary.main" : "secondary.main",
-                    opacity: loading ? 1 : 0.42,
-                    boxShadow: loading ? "0 0 14px currentColor" : "none",
-                    animation: loading ? "levelBounce 0.9s ease-in-out infinite" : "none",
-                    animationDelay: `${bar * 0.08}s`,
-                    "@keyframes levelBounce": {
-                      "0%, 100%": { transform: "scaleY(0.45)" },
-                      "50%": { transform: "scaleY(1.15)" },
-                    },
+                    bgcolor: loading ? "primary.main" : "rgba(154, 168, 186, 0.32)",
                   }}
                 />
               ))}
@@ -289,10 +280,18 @@ export default function ChatPage() {
           </Box>
 
           <MessageList messages={messages} loading={loading} endRef={endRef} />
+          <ToolGallery
+            tools={tools}
+            loading={loading}
+            selectedToolName={selectedTool?.name ?? null}
+            onSelectTool={setSelectedTool}
+            onRunTool={runTool}
+          />
           <MessageComposer
             input={input}
             loading={loading}
             connected={connected}
+            selectedToolName={selectedTool ? toolLabel(selectedTool.name) : null}
             onInputChange={setInput}
             onSubmit={sendMessage}
           />
@@ -355,4 +354,25 @@ function parseSseFrame(frame: string): ChatEvent | null {
 
 function toolNameFromEvent(event: ChatEvent): string {
   return typeof event.toolCall?.toolName === "string" ? event.toolCall.toolName : "tool";
+}
+
+function buildAgentPrompt(prompt: string, selectedTool: ToolDefinition | null): string {
+  if (!selectedTool) return prompt;
+
+  const description = selectedTool.description?.trim();
+  return [
+    `Use the ${selectedTool.name} tool as the primary capability for this request.`,
+    description ? `Tool description: ${description}` : "",
+    `User request: ${prompt}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function suggestedPromptForTool(tool: ToolDefinition): string {
+  if (tool.name === "machine_status") return "Check my machine status.";
+  if (tool.name === "latest_news") return "Show me the latest news.";
+  if (tool.name === "chroma_status") return "Check Chroma status.";
+
+  return `Run ${toolLabel(tool.name)} and summarize the result.`;
 }

@@ -155,9 +155,9 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
                 mt: 1.25,
                 px: 1.25,
                 py: 0.75,
-                borderLeft: "2px solid rgba(0, 229, 255, 0.24)",
-                bgcolor: "rgba(2, 3, 10, 0.22)",
-                color: "rgba(185, 200, 223, 0.68)",
+                borderLeft: "2px solid rgba(166, 23, 142, 0.28)",
+                bgcolor: "rgba(15, 20, 28, 0.42)",
+                color: "rgba(154, 168, 186, 0.78)",
                 fontSize: "0.72rem",
                 lineHeight: 1.5,
                 "& .MuiTypography-root": {
