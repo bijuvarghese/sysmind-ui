@@ -229,9 +229,9 @@ export default function ChatPage() {
             position: "relative",
             overflow: "hidden",
             border: "1px solid",
-            borderColor: "rgba(154, 168, 186, 0.18)",
+            borderColor: "rgba(89, 105, 128, 0.18)",
             bgcolor: "background.paper",
-            boxShadow: "0 18px 48px rgba(0, 0, 0, 0.22)",
+            boxShadow: "0 18px 48px rgba(45, 56, 76, 0.14)",
             display: "flex",
             flexDirection: "column",
           }}
@@ -240,7 +240,7 @@ export default function ChatPage() {
             <LinearProgress
               sx={{
                 height: 3,
-                bgcolor: "rgba(154, 168, 186, 0.12)",
+                bgcolor: "rgba(89, 105, 128, 0.12)",
                 "& .MuiLinearProgress-bar": {
                   bgcolor: "primary.main",
                 },
@@ -254,8 +254,8 @@ export default function ChatPage() {
               px: { xs: 2, sm: 2.5 },
               py: 1.5,
               borderBottom: "1px solid",
-              borderColor: "rgba(154, 168, 186, 0.14)",
-              bgcolor: "rgba(15, 20, 28, 0.52)",
+              borderColor: "rgba(89, 105, 128, 0.14)",
+              bgcolor: "#f9fbfd",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -272,7 +272,7 @@ export default function ChatPage() {
                   sx={{
                     width: 4,
                     height: 12 + bar * 2,
-                    bgcolor: loading ? "primary.main" : "rgba(154, 168, 186, 0.32)",
+                    bgcolor: loading ? "primary.main" : "rgba(89, 105, 128, 0.24)",
                   }}
                 />
               ))}

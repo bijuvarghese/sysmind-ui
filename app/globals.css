@@ -1,5 +1,5 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
@@ -9,8 +9,8 @@ body {
 }
 
 body {
-  background: #100b12;
-  color: #f8eff6;
+  background: #f7f9fc;
+  color: #17202f;
 }
 
 * {
@@ -27,5 +27,5 @@ a {
 }
 
 * {
-  scrollbar-color: rgba(166, 23, 142, 0.55) rgba(23, 17, 26, 0.75);
+  scrollbar-color: rgba(166, 23, 142, 0.48) rgba(227, 233, 242, 0.9);
 }

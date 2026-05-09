@@ -66,8 +66,8 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
                 variant="outlined"
                 sx={{
                   overflow: "hidden",
-                  borderColor: "rgba(148, 163, 184, 0.2)",
-                  bgcolor: "rgba(2, 6, 23, 0.85)",
+                  borderColor: "rgba(89, 105, 128, 0.2)",
+                  bgcolor: "#f7f9fc",
                   mb: 2,
                 }}
               >
@@ -95,8 +95,8 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
                   px: 0.75,
                   py: 0.25,
                   borderRadius: 1,
-                  bgcolor: "rgba(124, 58, 237, 0.16)",
-                  color: "primary.light",
+                  bgcolor: "rgba(166, 23, 142, 0.1)",
+                  color: "primary.dark",
                   fontFamily: "monospace",
                   fontSize: "0.92em",
                 }}
@@ -156,8 +156,8 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
                 px: 1.25,
                 py: 0.75,
                 borderLeft: "2px solid rgba(166, 23, 142, 0.28)",
-                bgcolor: "rgba(15, 20, 28, 0.42)",
-                color: "rgba(154, 168, 186, 0.78)",
+                bgcolor: "rgba(166, 23, 142, 0.05)",
+                color: "rgba(93, 104, 120, 0.9)",
                 fontSize: "0.72rem",
                 lineHeight: 1.5,
                 "& .MuiTypography-root": {
@@ -172,13 +172,13 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
             </Box>
           ),
           table: ({ children }) => (
-            <Paper variant="outlined" sx={{ overflowX: "auto", borderColor: "rgba(148, 163, 184, 0.2)", mb: 2 }}>
+            <Paper variant="outlined" sx={{ overflowX: "auto", borderColor: "rgba(89, 105, 128, 0.2)", mb: 2 }}>
               <Box component="table" sx={{ minWidth: "100%", borderCollapse: "collapse" }}>
                 {children}
               </Box>
             </Paper>
           ),
-          thead: ({ children }) => <Box component="thead" sx={{ bgcolor: "rgba(15, 23, 42, 0.8)" }}>{children}</Box>,
+          thead: ({ children }) => <Box component="thead" sx={{ bgcolor: "#f1f5f9" }}>{children}</Box>,
           tbody: ({ children }) => <Box component="tbody">{children}</Box>,
           tr: ({ children }) => <Box component="tr">{children}</Box>,
           th: ({ children }) => (

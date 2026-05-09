@@ -28,8 +28,8 @@ export default function MessageComposer({
         position: "relative",
         p: { xs: 2, sm: 2.5 },
         borderTop: "1px solid",
-        borderColor: "rgba(154, 168, 186, 0.14)",
-        bgcolor: "rgba(15, 20, 28, 0.72)",
+        borderColor: "rgba(89, 105, 128, 0.14)",
+        bgcolor: "#f9fbfd",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -75,10 +75,10 @@ export default function MessageComposer({
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: 1,
-              bgcolor: "rgba(21, 27, 36, 0.95)",
+              bgcolor: "#ffffff",
               color: "text.primary",
               "& fieldset": {
-                borderColor: "rgba(154, 168, 186, 0.2)",
+                borderColor: "rgba(89, 105, 128, 0.24)",
               },
               "&:hover fieldset": {
                 borderColor: "rgba(166, 23, 142, 0.42)",
@@ -88,7 +88,7 @@ export default function MessageComposer({
               },
             },
             "& .MuiInputBase-input::placeholder": {
-              color: "rgba(154, 168, 186, 0.78)",
+              color: "rgba(93, 104, 120, 0.78)",
               opacity: 1,
             },
           }}

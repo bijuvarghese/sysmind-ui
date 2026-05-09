@@ -45,8 +45,8 @@ function EmptyState() {
           width: "min(480px, 100%)",
           p: { xs: 3, sm: 4 },
           textAlign: "center",
-          borderColor: "rgba(154, 168, 186, 0.18)",
-          bgcolor: "rgba(15, 20, 28, 0.54)",
+          borderColor: "rgba(89, 105, 128, 0.18)",
+          bgcolor: "#ffffff",
         }}
       >
         <Typography variant="h6" component="p" sx={{ mb: 0.5, fontWeight: 700 }}>
@@ -77,8 +77,8 @@ function MessageBubble({ message }: { message: Message }) {
           px: 2,
           py: 1.75,
           border: "1px solid",
-          borderColor: isUser ? "rgba(166, 23, 142, 0.32)" : "rgba(154, 168, 186, 0.16)",
-          bgcolor: isUser ? "rgba(166, 23, 142, 0.1)" : "rgba(15, 20, 28, 0.72)",
+          borderColor: isUser ? "rgba(166, 23, 142, 0.32)" : "rgba(89, 105, 128, 0.16)",
+          bgcolor: isUser ? "rgba(166, 23, 142, 0.08)" : "#ffffff",
           "& .markdown-body": {
             color: "text.primary",
             fontSize: "0.875rem",
@@ -112,8 +112,8 @@ function ThinkingIndicator() {
           px: 2,
           py: 1.5,
           border: "1px solid",
-          borderColor: "rgba(154, 168, 186, 0.16)",
-          bgcolor: "rgba(15, 20, 28, 0.72)",
+          borderColor: "rgba(89, 105, 128, 0.16)",
+          bgcolor: "#ffffff",
         }}
       >
         <Box

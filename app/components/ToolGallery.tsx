@@ -28,8 +28,8 @@ export default function ToolGallery({
         px: { xs: 2, sm: 2.5 },
         py: 1.5,
         borderBottom: "1px solid",
-        borderColor: "rgba(154, 168, 186, 0.14)",
-        bgcolor: "rgba(15, 20, 28, 0.42)",
+        borderColor: "rgba(89, 105, 128, 0.14)",
+        bgcolor: "#ffffff",
       }}
     >
       <Box
@@ -41,7 +41,7 @@ export default function ToolGallery({
           scrollbarWidth: "thin",
           "&::-webkit-scrollbar": { height: 6 },
           "&::-webkit-scrollbar-thumb": {
-            bgcolor: "rgba(154, 168, 186, 0.28)",
+            bgcolor: "rgba(89, 105, 128, 0.26)",
             borderRadius: 1,
           },
         }}
@@ -98,15 +98,15 @@ function ToolTile({
         justifyContent: "flex-start",
         borderRadius: 1,
         border: "1px solid",
-        borderColor: active ? "rgba(166, 23, 142, 0.46)" : "rgba(154, 168, 186, 0.18)",
-        bgcolor: active ? "rgba(166, 23, 142, 0.1)" : "rgba(21, 27, 36, 0.74)",
+        borderColor: active ? "rgba(166, 23, 142, 0.46)" : "rgba(89, 105, 128, 0.18)",
+        bgcolor: active ? "rgba(166, 23, 142, 0.08)" : "#f8fafc",
         color: "text.primary",
         textAlign: "left",
         overflow: "hidden",
         transition: "border-color 180ms ease, background-color 180ms ease",
         "&:hover": {
           borderColor: "rgba(166, 23, 142, 0.46)",
-          bgcolor: active ? "rgba(166, 23, 142, 0.12)" : "rgba(166, 23, 142, 0.07)",
+          bgcolor: active ? "rgba(166, 23, 142, 0.11)" : "rgba(166, 23, 142, 0.05)",
         },
         "&.Mui-disabled": {
           color: "text.disabled",
@@ -123,8 +123,8 @@ function ToolTile({
             display: "grid",
             placeItems: "center",
             border: "1px solid",
-            borderColor: active ? "rgba(166, 23, 142, 0.38)" : "rgba(154, 168, 186, 0.22)",
-            bgcolor: active ? "rgba(166, 23, 142, 0.12)" : "rgba(154, 168, 186, 0.06)",
+            borderColor: active ? "rgba(166, 23, 142, 0.38)" : "rgba(89, 105, 128, 0.2)",
+            bgcolor: active ? "rgba(166, 23, 142, 0.1)" : "rgba(89, 105, 128, 0.06)",
             color: active ? "primary.main" : "text.secondary",
           }}
         >
