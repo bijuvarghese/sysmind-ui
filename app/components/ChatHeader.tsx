@@ -7,7 +7,7 @@ export default function ChatHeader() {
       sx={{
         p: { xs: 2, sm: 2.5 },
         border: "1px solid",
-        borderColor: "rgba(154, 168, 186, 0.18)",
+        borderColor: "rgba(68, 147, 85, 0.18)",
         bgcolor: "background.paper",
       }}
     >
