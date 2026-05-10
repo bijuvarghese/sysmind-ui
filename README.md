@@ -8,6 +8,7 @@ In the full SysMind workspace, this service sits beside:
 
 - `sysmind-mcp`: the stateless MCP backend that serves local tools.
 - `sysmind-agent`: the Spring AI agent service that plans responses and calls MCP tools.
+- `sysmind-ios`: the native SwiftUI chat client that talks to the same agent service over HTTP and server-sent events.
 
 ## Structure
 
@@ -58,6 +59,8 @@ The agent can call read-only MCP tools exposed by the backend, including `latest
 The chat surface fetches available MCP tools from `/api/tools` and renders them as GPT-style tiles. Tapping a tool tile creates the matching prompt, sends it immediately, and steers the agent toward that tool.
 
 Tool-result display is shared between the streaming chat path and the non-streaming API route, so new tool renderers only need to be added once.
+
+The native iOS app uses the same agent API surface: `GET /api/tools` and `POST /api/chat/stream`.
 
 ## Development
 
